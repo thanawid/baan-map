@@ -1,7 +1,7 @@
 {
-  "name": "Baan-Map | ฝ่ายปกครอง",
+  "name": "Baan-Map ฝ่ายปกครอง",
   "short_name": "Baan-Map",
-  "description": "เว็บแอปสำหรับฝ่ายปกครอง ใช้บันทึกข้อมูลบ้านลูกบ้าน แผนที่ภาคสนาม และสรุปข้อมูลแบบใช้งานจริง",
+  "description": "เว็บแอปแผนที่บ้านลูกบ้านสำหรับฝ่ายปกครอง บันทึกข้อมูลภาคสนาม ซิงก์ Firebase และส่งออกรายงาน",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F8FAFC",

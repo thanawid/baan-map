@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#312E81">
-<meta name="description" content="Baan-Map เว็บแอปสำหรับฝ่ายปกครอง ใช้บันทึกข้อมูลบ้านลูกบ้าน แผนที่ภาคสนาม และสรุปข้อมูลแบบใช้งานจริง">
-<title>Baan-Map | เว็บแอปสำหรับฝ่ายปกครอง</title>
+<meta name="description" content="Baan-Map เว็บแอปสำหรับฝ่ายปกครอง ใช้บันทึกข้อมูลบ้านลูกบ้าน แผนที่ภาคสนาม ซิงก์ Firebase และส่งออก CSV/JSON">
+<title>Baan-Map V2 Firebase | ฝ่ายปกครอง</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./assets/logo-baan-map.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,1017 +14,345 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
-  --bg:#F8FAFC;
-  --surface:#FFFFFF;
-  --surface-2:#F1F5F9;
-  --line:#E2E8F0;
-  --text:#0F172A;
-  --muted:#64748B;
-  --primary:#6D28D9;
-  --primary-deep:#312E81;
-  --accent:#F97316;
-  --accent-2:#FCD34D;
-  --success:#16A34A;
-  --danger:#DC2626;
-  --info:#2563EB;
-  --shadow:0 14px 36px rgba(15,23,42,.10);
-  --shadow-soft:0 8px 20px rgba(15,23,42,.08);
-  --radius-xl:26px;
-  --radius-lg:18px;
-  --radius-md:14px;
-  --safe-bottom:max(12px, env(safe-area-inset-bottom));
+  --bg:#F8FAFC;--surface:#FFFFFF;--surface2:#F1F5F9;--line:#E2E8F0;--text:#0F172A;--muted:#64748B;
+  --primary:#6D28D9;--deep:#312E81;--accent:#F97316;--gold:#FCD34D;--ok:#16A34A;--danger:#DC2626;--blue:#2563EB;
+  --shadow:0 18px 44px rgba(15,23,42,.12);--soft:0 8px 22px rgba(15,23,42,.08)
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{
-  font-family:'Sarabun',system-ui,sans-serif;
-  color:var(--text);
-  background:radial-gradient(circle at top left,#FFF7ED 0%,#F8FAFC 28%,#EEF2FF 100%);
-  min-height:100dvh;
-}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-a{color:inherit}
-img{display:block;max-width:100%}
-.app-shell{min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto}
-.topbar{
-  position:sticky;top:0;z-index:1000;
-  background:linear-gradient(135deg,#111827 0%,#312E81 45%,#7C2D12 100%);
-  color:#fff;
-  box-shadow:0 10px 30px rgba(15,23,42,.22);
-}
-.topbar::after{
-  content:"";display:block;height:4px;
-  background:linear-gradient(90deg,#FCD34D 0%,#F97316 35%,#A855F7 100%);
-}
-.topbar-inner{padding:14px 16px 14px;display:grid;gap:12px}
-.brand-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 320px}
-.brand-logo{
-  width:58px;height:58px;border-radius:18px;overflow:hidden;flex-shrink:0;
-  background:rgba(255,255,255,.14);backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.28);
-  box-shadow:0 0 0 3px rgba(255,255,255,.16);
-}
-.brand-logo img{width:100%;height:100%;object-fit:cover}
-.brand-title{min-width:0}
-.brand-title h1{font-size:22px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
-.brand-title p{font-size:13.5px;color:#E9D5FF;font-weight:600;margin-top:3px}
-.brand-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.badge{
-  display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;
-  font-size:12.5px;font-weight:800;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22)
-}
+body{font-family:'Sarabun',system-ui,sans-serif;background:radial-gradient(circle at 5% 0,#FFF7ED 0,#F8FAFC 34%,#EEF2FF 100%);color:var(--text)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit}img{display:block;max-width:100%}
+.app{min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto}
+.topbar{position:sticky;top:0;z-index:1000;color:#fff;background:linear-gradient(135deg,#111827 0%,#312E81 48%,#7C2D12 100%);box-shadow:0 12px 34px rgba(15,23,42,.24)}
+.topbar:after{content:"";display:block;height:4px;background:linear-gradient(90deg,#FCD34D,#F97316,#A855F7)}
+.top-inner{padding:14px 16px;display:grid;gap:12px}
+.brand-row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center;min-width:300px;flex:1}
+.logo{width:62px;height:62px;border-radius:20px;overflow:hidden;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);box-shadow:0 0 0 4px rgba(255,255,255,.14);flex-shrink:0}
+.logo img{width:100%;height:100%;object-fit:cover}
+h1{font-size:23px;line-height:1.05;font-weight:800;letter-spacing:-.02em}
+.brand p{font-size:13.5px;color:#E9D5FF;font-weight:600;margin-top:4px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:12px;font-weight:800}
 .badge .dot{width:8px;height:8px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 4px rgba(34,197,94,.18)}
 .badge.warn .dot{background:#FB923C;box-shadow:0 0 0 4px rgba(251,146,60,.18)}
-.actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;flex:1 1 420px}
-.tbtn{
-  border:none;border-radius:999px;padding:10px 14px;font-weight:800;font-size:13px;
-  color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
-  backdrop-filter:blur(8px);box-shadow:var(--shadow-soft);transition:.15s ease
-}
-.tbtn:hover{transform:translateY(-1px);filter:brightness(1.05)}
-.tbtn.primary{background:linear-gradient(135deg,#7C3AED,#A855F7);border-color:transparent}
-.tbtn.success{background:linear-gradient(135deg,#16A34A,#15803D);border-color:transparent}
-.tbtn.accent{background:linear-gradient(135deg,#F97316,#EA580C);border-color:transparent}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1 1 460px}
+.btn{border:none;border-radius:999px;padding:10px 14px;color:#fff;font-weight:800;font-size:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:var(--soft);transition:.15s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.btn.ok{background:linear-gradient(135deg,#16A34A,#15803D);border-color:transparent}.btn.pri{background:linear-gradient(135deg,#7C3AED,#A855F7);border-color:transparent}.btn.acc{background:linear-gradient(135deg,#F97316,#EA580C);border-color:transparent}.btn.danger{background:linear-gradient(135deg,#DC2626,#B91C1C);border-color:transparent}
 .toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
-.searchbox{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:0 14px;box-shadow:var(--shadow-soft)}
-.searchbox svg{opacity:.55;flex-shrink:0}
-.searchbox input{border:none;outline:none;width:100%;font-size:17px;padding:13px 0;color:var(--text);background:transparent}
-.meta-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.meta-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;color:#F8FAFC}
-.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{border:none;color:#fff;padding:10px 14px;border-radius:999px;font-weight:800;white-space:nowrap;opacity:.72;box-shadow:0 8px 20px rgba(15,23,42,.18);transition:.16s ease}
-.chip.on{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.95),0 10px 24px rgba(15,23,42,.20)}
-.chip.all{background:#475569}
-.content{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(360px,.95fr);gap:14px;padding:14px}
-.panel{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.8);backdrop-filter:blur(16px);box-shadow:var(--shadow);border-radius:var(--radius-xl)}
-.map-panel{position:relative;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto;min-height:620px}
-.map-head{padding:14px 16px 10px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-.map-head h2{font-size:18px;font-weight:800}
-.map-head p{font-size:13px;color:var(--muted);margin-top:2px}
-.mini-legend{display:flex;gap:8px;flex-wrap:wrap}
-.mini-chip{font-size:12px;padding:8px 10px;border-radius:999px;background:var(--surface-2);font-weight:700;color:var(--muted);border:1px solid var(--line)}
-.map-wrap{position:relative;min-height:380px;background:linear-gradient(135deg,#E0E7FF,#FCE7F3)}
+.search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:0 14px;box-shadow:var(--soft)}
+.search input{border:none;outline:none;width:100%;font-size:17px;padding:13px 0;color:var(--text);background:transparent}
+.search svg{opacity:.55;flex-shrink:0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:12px;font-weight:800;color:#F8FAFC}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{border:none;color:#fff;padding:10px 14px;border-radius:999px;font-weight:800;white-space:nowrap;opacity:.72;box-shadow:0 8px 20px rgba(15,23,42,.18)}.chip.on{opacity:1;box-shadow:0 0 0 2px #fff,0 10px 24px rgba(15,23,42,.22)}.chip.all{background:#475569}
+.content{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(370px,.95fr);gap:14px;padding:14px}
+.panel{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.85);border-radius:28px;box-shadow:var(--shadow);overflow:hidden}
+.map-panel{display:grid;grid-template-rows:auto 1fr auto;min-height:650px}
+.panel-head{padding:14px 16px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.panel-head h2,.panel-head h3{font-size:18px;font-weight:800}.panel-head p{font-size:13px;color:var(--muted);margin-top:3px}
+.legend{display:flex;gap:8px;flex-wrap:wrap}.legend span{font-size:12px;font-weight:800;color:#475569;background:#F8FAFC;border:1px solid var(--line);padding:8px 10px;border-radius:999px}
+.map-wrap{position:relative;min-height:420px;background:linear-gradient(135deg,#DBEAFE,#FCE7F3)}
 #map{position:absolute;inset:0;z-index:1}
-.map-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:#334155;z-index:2;background:radial-gradient(circle at center,#fff 0%,#F8FAFC 100%)}
-.map-fallback.show{display:flex}
-.map-fallback .box{max-width:420px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-soft);border-radius:24px;padding:22px}
-.map-fallback h3{font-size:18px;margin-bottom:6px}
-.map-fallback p{font-size:14px;color:var(--muted);line-height:1.6}
-.banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:520;background:linear-gradient(135deg,#FDE68A,#F97316);color:#111827;font-size:13px;font-weight:800;border-radius:999px;padding:9px 16px;box-shadow:0 10px 22px rgba(15,23,42,.18);display:none;max-width:92%;text-align:center}
-.fab-col{position:absolute;right:14px;bottom:14px;z-index:530;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
-.fab{border:none;border-radius:18px;padding:13px 16px;color:#fff;font-weight:800;box-shadow:0 14px 28px rgba(15,23,42,.24);transition:.15s ease}
-.fab:hover{transform:translateY(-1px)}
-.fab.zone{background:linear-gradient(135deg,#7C3AED,#C026D3)}
-.fab.gps{background:linear-gradient(135deg,#2563EB,#1D4ED8)}
-.fab.add{background:linear-gradient(135deg,#16A34A,#15803D)}
-.fab.active-cancel{background:linear-gradient(135deg,#DC2626,#B91C1C)}
-.map-foot{padding:12px 16px 16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.quick-stat{padding:12px 14px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-soft)}
-.quick-stat small{display:block;font-size:12px;color:var(--muted);font-weight:800}
-.quick-stat b{display:block;margin-top:2px;font-size:18px}
-.quick-stat.primary{background:linear-gradient(135deg,#312E81,#7C3AED);color:#fff;border-color:transparent}
-.quick-stat.primary small,.quick-stat.primary b{color:#fff}
-.side-panel{display:grid;grid-template-rows:auto auto auto 1fr;overflow:hidden;min-height:620px}
-.side-section{padding:14px 16px}
-.side-section + .side-section{border-top:1px solid #EDF2F7}
-.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.section-title h3{font-size:18px;font-weight:800}
-.subtle{font-size:13px;color:var(--muted);font-weight:700}
-.filter-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px}
-.select,input[type="text"],textarea{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px 13px;outline:none;color:var(--text)}
-.select:focus,input[type="text"]:focus,textarea:focus,select:focus,input:focus{border-color:#8B5CF6;box-shadow:0 0 0 4px rgba(139,92,246,.10)}
-.dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.moo-card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:12px 13px;box-shadow:var(--shadow-soft);cursor:pointer;transition:.15s ease}
-.moo-card:hover{transform:translateY(-1px)}
-.moo-card.on{box-shadow:0 0 0 2px rgba(109,40,217,.16), var(--shadow-soft)}
-.moo-card .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.moo-card .sw{width:13px;height:13px;border-radius:50%}
-.moo-card h4{font-size:15px;font-weight:800}
-.moo-card p{margin-top:2px;font-size:12.5px;color:var(--muted);line-height:1.35}
-.moo-card strong{font-size:20px;line-height:1}
-.list-wrap{padding:0 16px 16px;overflow:auto}
-.house{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:6px solid transparent;border-radius:20px;padding:13px 13px 13px 12px;box-shadow:var(--shadow-soft);transition:.15s ease;margin-bottom:10px}
-.house:hover{transform:translateY(-1px)}
-.house.selected{box-shadow:0 0 0 2px rgba(109,40,217,.16), var(--shadow-soft)}
-.plate{width:70px;min-height:54px;border-radius:14px;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;font-weight:800;box-shadow:0 10px 18px rgba(15,23,42,.14)}
-.plate span{font-size:19px;line-height:1}
-.plate small{font-size:11px;opacity:.9;margin-top:4px}
-.house-name{font-size:17px;font-weight:800;line-height:1.25}
-.house-meta{margin-top:4px;font-size:13.5px;color:var(--muted);display:grid;gap:4px}
-.inline-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.tag{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#FFF7ED;color:#9A3412}
-.tag.note{background:#EEF2FF;color:#4338CA}
-.card-actions{display:flex;flex-direction:column;gap:7px;min-width:86px}
-.cbtn{border:none;border-radius:999px;padding:9px 12px;color:#fff;font-size:13px;font-weight:800;box-shadow:var(--shadow-soft)}
-.cbtn.nav{background:linear-gradient(135deg,#16A34A,#15803D)}
-.cbtn.edit{background:#475569}
-.empty{text-align:center;color:var(--muted);padding:30px 16px 12px}
-.empty b{display:block;color:var(--text);margin-bottom:4px}
-.info-card{background:linear-gradient(180deg,#fff,#F8FAFC);border:1px solid var(--line);border-left:6px solid #F59E0B;border-radius:20px;box-shadow:var(--shadow-soft);padding:12px 14px;margin-bottom:12px}
-.info-card h4{font-size:16px;font-weight:800;margin-bottom:5px}
-.info-card ul{margin-left:18px;color:#334155;font-size:14px;display:grid;gap:4px}
-.info-card .src{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:8px}
-.footer{padding:12px 16px 16px;color:#64748B;font-size:12.5px;text-align:center}
-.footer b{color:#334155}
-.overlay{position:fixed;inset:0;background:rgba(15,23,42,.58);backdrop-filter:blur(4px);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
-.overlay.show{display:flex}
-.sheet{width:min(100%,560px);max-height:min(92dvh,900px);overflow:auto;background:#fff;border-radius:28px;box-shadow:0 28px 70px rgba(15,23,42,.34);padding:22px}
-.sheet h2{font-size:23px;font-weight:800;line-height:1.15}
-.sheet .sheet-sub{font-size:13px;color:var(--muted);margin-top:6px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-.form-row{display:grid;gap:6px}
-.form-row.full{grid-column:1/-1}
-.form-row label{font-size:14px;font-weight:800;color:#334155}
-.textarea{min-height:100px;resize:vertical}
-.sheet-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
-.sbtn{border:none;border-radius:18px;padding:13px 16px;font-weight:800;font-size:15px;box-shadow:var(--shadow-soft)}
-.sbtn.cancel{background:#F1F5F9;color:#0F172A}
-.sbtn.delete{background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff}
-.sbtn.save{background:linear-gradient(135deg,#16A34A,#15803D);color:#fff}
-.sbtn.secondary{background:linear-gradient(135deg,#312E81,#7C3AED);color:#fff}
-.help-steps{display:grid;gap:12px;margin-top:14px}
-.help-step{display:flex;gap:12px;align-items:flex-start}
-.help-num{width:34px;height:34px;border-radius:50%;background:#312E81;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;box-shadow:0 0 0 4px rgba(109,40,217,.12)}
-.help-step b{display:block;font-size:15px;margin-bottom:2px}
-.help-step p{font-size:14px;color:var(--muted);line-height:1.5}
-.note-box{margin-top:14px;padding:12px 14px;border-radius:16px;background:#F8FAFC;border:1px dashed #CBD5E1;color:#475569;font-size:13px;line-height:1.55}
-.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:3000;display:none;max-width:calc(100vw - 24px);background:linear-gradient(135deg,#111827,#312E81);color:#fff;padding:12px 18px;border-radius:999px;box-shadow:0 16px 30px rgba(15,23,42,.28);font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.leaflet-popup-content{font-family:'Sarabun',sans-serif;margin:12px 14px}
-.pp-name{font-weight:800;font-size:16px}
-.pp-addr{font-size:13.5px;color:#64748B;margin:4px 0 8px}
-.pp-btns{display:flex;gap:8px}
-.pp-btn{flex:1;border-radius:12px;padding:10px 12px;color:#fff;text-decoration:none;font-weight:800;font-size:13.5px;text-align:center}
-.pp-btn.nav{background:linear-gradient(135deg,#16A34A,#15803D)}
-.pp-btn.call{background:linear-gradient(135deg,#2563EB,#1D4ED8)}
-.plate-pin{background:#1D4ED8;color:#fff;font-weight:800;font-size:13px;border:2px solid #fff;border-radius:8px;padding:2px 7px;box-shadow:0 8px 18px rgba(15,23,42,.25);white-space:nowrap;text-align:center;line-height:1.25}
-.plate-pin.active{background:#FCD34D;color:#312E81}
-.zone-label{font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.58);text-align:center;line-height:1.25;white-space:nowrap;pointer-events:none}
-.zone-label small{display:block;font-size:11px;font-weight:700;opacity:.95}
-.vertex-handle{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #7C3AED;box-shadow:0 4px 10px rgba(15,23,42,.22)}
-.hidden{display:none !important}
-@media (max-width:1180px){
-  .content{grid-template-columns:1fr;}
-  .map-panel,.side-panel{min-height:auto}
-}
-@media (max-width:780px){
-  .topbar-inner{padding:12px}
-  .brand-row{align-items:flex-start}
-  .actions{justify-content:flex-start}
-  .toolbar{grid-template-columns:1fr}
-  .meta-pills{justify-content:flex-start}
-  .content{padding:12px;gap:12px}
-  .map-head{padding:12px}
-  .map-wrap{min-height:44dvh}
-  .map-foot{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}
-  .filter-grid{grid-template-columns:1fr}
-  .dashboard-grid{grid-template-columns:1fr 1fr}
-  .house{grid-template-columns:auto 1fr;}
-  .card-actions{grid-column:1/-1;flex-direction:row;min-width:0}
-  .card-actions .cbtn{flex:1}
-  .form-grid{grid-template-columns:1fr}
-  .sheet{padding:18px;border-radius:24px}
-  .fab{padding:12px 14px;font-size:13px;border-radius:16px}
-}
-@media (max-width:520px){
-  .brand-title h1{font-size:20px}
-  .tbtn{padding:9px 12px;font-size:12px}
-  .badge{padding:7px 10px}
-  .dashboard-grid{grid-template-columns:1fr}
-  .map-foot{grid-template-columns:1fr 1fr}
-}
+.fallback{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;background:#fff}.fallback.show{display:flex}.fallback .box{max-width:430px;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--soft)}.fallback h3{font-size:18px;margin-bottom:6px}.fallback p{font-size:14px;color:var(--muted);line-height:1.55}
+.banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:520;display:none;background:linear-gradient(135deg,#FDE68A,#F97316);color:#111827;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;box-shadow:0 10px 22px rgba(15,23,42,.18);max-width:92%;text-align:center}
+.fabs{position:absolute;right:14px;bottom:14px;z-index:530;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.fab{border:none;border-radius:18px;padding:13px 16px;color:#fff;font-weight:800;box-shadow:0 14px 30px rgba(15,23,42,.24)}.fab.zone{background:linear-gradient(135deg,#7C3AED,#C026D3)}.fab.gps{background:linear-gradient(135deg,#2563EB,#1D4ED8)}.fab.add{background:linear-gradient(135deg,#16A34A,#15803D)}.fab.cancel{background:linear-gradient(135deg,#DC2626,#B91C1C)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:12px 16px 16px}.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:var(--soft)}.stat small{display:block;color:var(--muted);font-size:12px;font-weight:800}.stat b{font-size:19px}.stat.pri{background:linear-gradient(135deg,#312E81,#7C3AED);color:#fff;border-color:transparent}.stat.pri small,.stat.pri b{color:#fff}
+.side{display:grid;grid-template-rows:auto auto auto 1fr;min-height:650px}.sec{padding:14px 16px}.sec+.sec{border-top:1px solid #EDF2F7}.sec-title{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.subtle{color:var(--muted);font-size:13px;font-weight:800}
+.filters{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px}
+.select,input[type=text],input[type=password],input[type=email],textarea{width:100%;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:12px 13px;outline:none;color:var(--text)}select:focus,input:focus,textarea:focus{border-color:#8B5CF6;box-shadow:0 0 0 4px rgba(139,92,246,.10)}
+.dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.moo-card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:12px 13px;box-shadow:var(--soft);cursor:pointer}.moo-card.on{box-shadow:0 0 0 2px rgba(109,40,217,.16),var(--soft)}.moo-card .row{display:flex;justify-content:space-between;gap:8px}.sw{width:13px;height:13px;border-radius:50%;display:inline-block}.moo-card h4{font-size:15px}.moo-card p{font-size:12.5px;color:var(--muted);margin-top:3px}.moo-card strong{font-size:20px}
+.info-card{background:linear-gradient(180deg,#fff,#F8FAFC);border:1px solid var(--line);border-left:6px solid #F59E0B;border-radius:20px;padding:12px 14px;box-shadow:var(--soft)}.info-card h4{font-size:16px;font-weight:800;margin-bottom:5px}.info-card ul{margin-left:18px;color:#334155;font-size:14px;display:grid;gap:4px}.info-card .src{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:8px}
+.list{padding:0 16px 16px;overflow:auto}.house{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:6px solid transparent;border-radius:20px;padding:13px;margin-bottom:10px;box-shadow:var(--soft)}.house.selected{box-shadow:0 0 0 2px rgba(109,40,217,.16),var(--soft)}
+.plate{width:70px;min-height:54px;border-radius:14px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800}.plate span{font-size:19px}.plate small{font-size:11px;opacity:.9}.house-name{font-size:17px;font-weight:800}.house-meta{margin-top:4px;font-size:13.5px;color:var(--muted);display:grid;gap:4px}.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.tag{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#FFF7ED;color:#9A3412}.tag.note{background:#EEF2FF;color:#4338CA}.tag.cloud{background:#DCFCE7;color:#166534}
+.card-actions{display:flex;flex-direction:column;gap:7px;min-width:88px}.cbtn{border:none;border-radius:999px;padding:9px 12px;color:#fff;font-size:13px;font-weight:800}.cbtn.nav{background:linear-gradient(135deg,#16A34A,#15803D)}.cbtn.edit{background:#475569}
+.empty{text-align:center;color:var(--muted);padding:30px 16px}.empty b{display:block;color:var(--text);margin-bottom:4px}
+.footer{padding:12px 16px 16px;color:#64748B;font-size:12.5px;text-align:center}.footer b{color:#334155}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.58);backdrop-filter:blur(4px);z-index:2500;display:none;align-items:center;justify-content:center;padding:16px}.overlay.show{display:flex}.sheet{width:min(100%,570px);max-height:92dvh;overflow:auto;background:#fff;border-radius:28px;box-shadow:0 28px 70px rgba(15,23,42,.34);padding:22px}.sheet h2{font-size:23px;font-weight:800}.sheet-sub{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.row-full{grid-column:1/-1}.field{display:grid;gap:6px}.field label{font-size:14px;font-weight:800;color:#334155}.textarea{min-height:96px;resize:vertical}.sheet-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}.sbtn{border:none;border-radius:18px;padding:13px 16px;font-weight:800;box-shadow:var(--soft)}.sbtn.cancel{background:#F1F5F9;color:#0F172A}.sbtn.save{background:linear-gradient(135deg,#16A34A,#15803D);color:#fff}.sbtn.pri{background:linear-gradient(135deg,#312E81,#7C3AED);color:#fff}.sbtn.danger{background:linear-gradient(135deg,#DC2626,#B91C1C);color:#fff}
+.note{margin-top:14px;padding:12px 14px;border-radius:16px;background:#F8FAFC;border:1px dashed #CBD5E1;color:#475569;font-size:13px;line-height:1.55}.help{display:grid;gap:12px;margin-top:14px}.help-step{display:flex;gap:12px}.num{width:34px;height:34px;border-radius:50%;background:#312E81;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0}.help-step b{display:block}.help-step p{font-size:14px;color:var(--muted);line-height:1.5;margin-top:2px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:4000;display:none;max-width:calc(100vw - 24px);background:linear-gradient(135deg,#111827,#312E81);color:#fff;padding:12px 18px;border-radius:999px;box-shadow:0 16px 30px rgba(15,23,42,.28);font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leaflet-popup-content{font-family:'Sarabun',sans-serif;margin:12px 14px}.pp-name{font-weight:800;font-size:16px}.pp-addr{font-size:13.5px;color:#64748B;margin:4px 0 8px}.pp-btns{display:flex;gap:8px}.pp-btn{flex:1;border-radius:12px;padding:10px 12px;color:#fff;text-decoration:none;font-weight:800;font-size:13.5px;text-align:center}.pp-btn.nav{background:#16A34A}.pp-btn.call{background:#2563EB}
+.plate-pin{background:#1D4ED8;color:#fff;font-weight:800;font-size:13px;border:2px solid #fff;border-radius:8px;padding:2px 7px;box-shadow:0 8px 18px rgba(15,23,42,.25);white-space:nowrap}.plate-pin.active{background:#FCD34D;color:#312E81}.zone-label{font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.58);text-align:center;line-height:1.25;white-space:nowrap;pointer-events:none}.zone-label small{display:block;font-size:11px}.vertex{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #7C3AED;box-shadow:0 4px 10px rgba(15,23,42,.22)}
+.hidden{display:none!important}
+@media(max-width:1180px){.content{grid-template-columns:1fr}.map-panel,.side{min-height:auto}}
+@media(max-width:780px){.top-inner{padding:12px}.actions{justify-content:flex-start}.toolbar{grid-template-columns:1fr}.pills{justify-content:flex-start}.content{padding:12px}.map-wrap{min-height:45dvh}.stats{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr 1fr}.house{grid-template-columns:auto 1fr}.card-actions{grid-column:1/-1;flex-direction:row}.card-actions .cbtn{flex:1}.form{grid-template-columns:1fr}.fab{font-size:13px;padding:12px 14px}}
+@media(max-width:520px){h1{font-size:20px}.btn{font-size:12px;padding:9px 11px}.dashboard{grid-template-columns:1fr}.logo{width:56px;height:56px}}
 </style>
 </head>
 <body>
-<div class="app-shell">
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand-row">
-        <div class="brand">
-          <div class="brand-logo" id="brandLogoButton" title="เปลี่ยนโลโก้องค์กร">
-            <img id="brandLogo" src="./assets/logo-baan-map.svg" alt="Baan-Map logo">
-          </div>
-          <input type="file" id="logoInput" accept="image/*" class="hidden">
-          <div class="brand-title">
-            <h1>Baan-Map</h1>
-            <p>เว็บแอปสำหรับฝ่ายปกครอง · แผนที่บ้านลูกบ้าน · ใช้งานได้ทุกอุปกรณ์</p>
-            <div class="brand-badges">
-              <div class="badge" id="syncState"><span class="dot"></span><span>บันทึกอัตโนมัติพร้อมใช้งาน</span></div>
-              <div class="badge"><span class="dot"></span><span>โหมดภาคสนามพร้อมใช้</span></div>
-              <div class="badge" id="deviceState"><span class="dot"></span><span>Responsive พร้อม</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="tbtn" id="btnHelp">❓ วิธีใช้</button>
-          <button class="tbtn" id="btnFit">🎯 รวมมุมมอง</button>
-          <button class="tbtn success" id="btnExport">💾 สำรอง JSON</button>
-          <button class="tbtn" id="btnCsv">📊 ส่งออก CSV</button>
-          <button class="tbtn" id="btnImport">📂 เปิดไฟล์</button>
-          <button class="tbtn" id="btnMerge">🔗 รวมไฟล์ทีม</button>
-          <button class="tbtn accent hidden" id="btnInstall">⬇️ ติดตั้งแอป</button>
-          <button class="tbtn" id="btnClear">🧹 ล้างข้อมูล</button>
-          <input type="file" id="fileInput" accept=".json" class="hidden">
-          <input type="file" id="mergeInput" accept=".json" multiple class="hidden">
-        </div>
-      </div>
-      <div class="toolbar">
-        <div class="searchbox">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-          <input id="q" type="search" placeholder="ค้นหาชื่อ บ้านเลขที่ เบอร์โทร หรือหมายเหตุ" autocomplete="off">
-        </div>
-        <div class="meta-pills">
-          <div class="meta-pill" id="versionPill">เวอร์ชัน Baan-Map V1.0</div>
-          <div class="meta-pill" id="lastSavedPill">ยังไม่ได้บันทึกล่าสุด</div>
-        </div>
-      </div>
-      <div class="chips" id="chips"></div>
-    </div>
-  </header>
-
-  <main class="content">
-    <section class="panel map-panel">
-      <div class="map-head">
+<div class="app">
+<header class="topbar">
+  <div class="top-inner">
+    <div class="brand-row">
+      <div class="brand">
+        <div class="logo" id="logoButton"><img id="brandLogo" src="./assets/logo-baan-map.svg" alt="Baan-Map logo"></div>
+        <input type="file" id="logoInput" accept="image/*" class="hidden">
         <div>
-          <h2>แผนที่ภาคสนาม</h2>
-          <p>แตะหมุดเพื่อดูข้อมูล กดเพิ่มบ้านเพื่อปักพิกัด หรือใช้ GPS ยืนหน้าบ้านแล้วบันทึกได้เลย</p>
-        </div>
-        <div class="mini-legend">
-          <div class="mini-chip">🗺️ ปรับเขตหมู่ได้</div>
-          <div class="mini-chip">📍 นำทางผ่าน Google Maps</div>
-          <div class="mini-chip">📱 รองรับมือถือ / แท็บเล็ต / คอม</div>
-        </div>
-      </div>
-      <div class="map-wrap">
-        <div id="map"></div>
-        <div class="map-fallback" id="mapFallback">
-          <div class="box">
-            <h3>ไม่สามารถโหลดแผนที่ได้</h3>
-            <p>ส่วนมากเกิดจากเปิดไฟล์แบบออฟไลน์หรืออินเทอร์เน็ตมีปัญหา แต่ไม่ต้องตกใจ เว็บยังใช้งานรายการบ้าน การค้นหา การนำเข้า/ส่งออก และการรวมไฟล์ทีมได้ตามปกติ</p>
+          <h1>Baan-Map</h1>
+          <p>เว็บแอปสำหรับฝ่ายปกครอง · แผนที่บ้านลูกบ้าน · Firebase Ready</p>
+          <div class="badges">
+            <div class="badge" id="syncState"><span class="dot"></span><span>Local autosave พร้อม</span></div>
+            <div class="badge warn" id="cloudState"><span class="dot"></span><span>Firebase ยังไม่ตั้งค่า</span></div>
+            <div class="badge"><span class="dot"></span><span>ตำบลบางรักน้อย</span></div>
           </div>
         </div>
-        <div class="banner" id="banner"></div>
-        <div class="fab-col">
-          <button class="fab zone" id="btnZone">🗺️ แก้เขตหมู่</button>
-          <button class="fab gps" id="btnGps">📍 ปักหมุดจุดที่ยืน</button>
-          <button class="fab add" id="btnAdd">➕ เพิ่มบ้าน</button>
-        </div>
       </div>
-      <div class="map-foot" id="summaryCards"></div>
-    </section>
-
-    <aside class="panel side-panel">
-      <section class="side-section">
-        <div class="section-title">
-          <h3>ศูนย์ควบคุมข้อมูล</h3>
-          <div class="subtle" id="count">0 หลังคาเรือน</div>
-        </div>
-        <div class="filter-grid">
-          <select id="tagFilter" class="select">
-            <option value="">ทุกกลุ่ม</option>
-            <option value="ผู้สูงอายุ">ผู้สูงอายุ</option>
-            <option value="ผู้ป่วยติดเตียง">ผู้ป่วยติดเตียง</option>
-            <option value="ผู้พิการ">ผู้พิการ</option>
-            <option value="อสม.">อสม.</option>
-            <option value="ผู้ช่วยผู้ใหญ่บ้าน">ผู้ช่วยผู้ใหญ่บ้าน</option>
-            <option value="กลุ่มเปราะบาง">กลุ่มเปราะบาง</option>
-          </select>
-          <select id="sortBy" class="select">
-            <option value="recent">เรียงตามล่าสุด</option>
-            <option value="house">เรียงตามบ้านเลขที่</option>
-            <option value="name">เรียงตามชื่อ</option>
-            <option value="moo">เรียงตามหมู่</option>
-          </select>
-          <input id="noteFilter" type="text" placeholder="กรองหมายเหตุ">
-        </div>
-      </section>
-
-      <section class="side-section">
-        <div class="section-title">
-          <h3>ภาพรวมรายหมู่</h3>
-          <div class="subtle">แตะการ์ดเพื่อกรอง</div>
-        </div>
-        <div class="dashboard-grid" id="dashboardGrid"></div>
-      </section>
-
-      <section class="side-section" id="contextInfo"></section>
-
-      <section class="list-wrap" id="list"></section>
-    </aside>
-  </main>
-
-  <footer class="footer">
-    <b>Baan-Map</b> — เว็บแอปสำหรับฝ่ายปกครอง ใช้บันทึกข้อมูลบ้านลูกบ้านในภาคสนามแบบทันใจ ข้อมูลถูกเก็บในเครื่องอัตโนมัติ และสามารถสำรอง/รวมไฟล์ทีมได้
-  </footer>
-</div>
-
-<div class="overlay" id="formOverlay">
-  <div class="sheet">
-    <h2 id="formTitle">เพิ่มบ้านใหม่</h2>
-    <div class="sheet-sub" id="formLoc">พิกัด -</div>
-    <div class="form-grid">
-      <div class="form-row">
-        <label for="fNo">บ้านเลขที่ *</label>
-        <input id="fNo" type="text" placeholder="เช่น 45/2">
+      <div class="actions">
+        <button class="btn pri" id="btnAuth">🔐 เข้าสู่ระบบ</button>
+        <button class="btn" id="btnHelp">❓ วิธีใช้</button>
+        <button class="btn" id="btnFit">🎯 ไปบางรักน้อย</button>
+        <button class="btn ok" id="btnExport">💾 JSON</button>
+        <button class="btn" id="btnCsv">📊 CSV</button>
+        <button class="btn" id="btnImport">📂 เปิดไฟล์</button>
+        <button class="btn" id="btnMerge">🔗 รวมไฟล์ทีม</button>
+        <button class="btn acc" id="btnCloudPush">☁️ ซิงก์ขึ้น Firebase</button>
+        <button class="btn hidden" id="btnInstall">⬇️ ติดตั้งแอป</button>
+        <button class="btn danger" id="btnClear">🧹 ล้าง</button>
+        <input type="file" id="fileInput" accept=".json" class="hidden">
+        <input type="file" id="mergeInput" accept=".json" multiple class="hidden">
       </div>
-      <div class="form-row">
-        <label for="fMoo">หมู่ที่ *</label>
-        <select id="fMoo" class="select"></select>
+    </div>
+    <div class="toolbar">
+      <div class="search">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <input id="q" type="search" placeholder="ค้นหาชื่อ บ้านเลขที่ เบอร์โทร หรือหมายเหตุ" autocomplete="off">
       </div>
-      <div class="form-row full">
-        <label for="fName">ชื่อเจ้าบ้าน *</label>
-        <input id="fName" type="text" placeholder="ชื่อ-นามสกุล">
+      <div class="pills"><div class="pill">Baan-Map V2 Firebase</div><div class="pill" id="lastSaved">ยังไม่ได้บันทึกล่าสุด</div></div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+
+<main class="content">
+  <section class="panel map-panel">
+    <div class="panel-head">
+      <div><h2>แผนที่ตำบลบางรักน้อย</h2><p>ตั้งศูนย์กลางไว้ที่บางรักน้อย และซูมเห็นพื้นที่ 6 หมู่โดยประมาณ</p></div>
+      <div class="legend"><span>📍 ศูนย์กลางบางรักน้อย</span><span>🗺️ แก้เขตหมู่ได้</span><span>☁️ Firebase sync</span></div>
+    </div>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="fallback" id="mapFallback"><div class="box"><h3>แผนที่โหลดไม่สำเร็จ</h3><p>ตรวจอินเทอร์เน็ตหรือเปิดผ่าน GitHub Pages/เว็บเซิร์ฟเวอร์ ระบบข้อมูลยังทำงานได้ แต่แผนที่ต้องพึ่ง OpenStreetMap และ Leaflet CDN</p></div></div>
+      <div class="banner" id="banner"></div>
+      <div class="fabs">
+        <button class="fab zone" id="btnZone">🗺️ แก้เขตหมู่</button>
+        <button class="fab gps" id="btnGps">📍 ปักหมุดจุดที่ยืน</button>
+        <button class="fab add" id="btnAdd">➕ เพิ่มบ้าน</button>
       </div>
-      <div class="form-row">
-        <label for="fPhone">เบอร์โทร</label>
-        <input id="fPhone" type="text" placeholder="08x-xxx-xxxx">
-      </div>
-      <div class="form-row">
-        <label for="fTag">ป้ายกำกับ</label>
-        <select id="fTag" class="select">
-          <option value="">— ไม่มี —</option>
-          <option value="ผู้สูงอายุ">ผู้สูงอายุ</option>
-          <option value="ผู้ป่วยติดเตียง">ผู้ป่วยติดเตียง</option>
-          <option value="ผู้พิการ">ผู้พิการ</option>
-          <option value="อสม.">อสม.</option>
-          <option value="ผู้ช่วยผู้ใหญ่บ้าน">ผู้ช่วยผู้ใหญ่บ้าน</option>
-          <option value="กลุ่มเปราะบาง">กลุ่มเปราะบาง</option>
+    </div>
+    <div class="stats" id="summary"></div>
+  </section>
+
+  <aside class="panel side">
+    <section class="sec">
+      <div class="sec-title"><h3>ศูนย์ควบคุมข้อมูล</h3><div class="subtle" id="count">0 หลังคาเรือน</div></div>
+      <div class="filters">
+        <select id="tagFilter" class="select">
+          <option value="">ทุกกลุ่ม</option><option>ผู้สูงอายุ</option><option>ผู้ป่วยติดเตียง</option><option>ผู้พิการ</option><option>อสม.</option><option>ผู้ช่วยผู้ใหญ่บ้าน</option><option>กลุ่มเปราะบาง</option>
         </select>
+        <select id="sortBy" class="select">
+          <option value="recent">ล่าสุด</option><option value="moo">เรียงตามหมู่</option><option value="house">บ้านเลขที่</option><option value="name">ชื่อ</option>
+        </select>
+        <input id="noteFilter" type="text" placeholder="กรองหมายเหตุ">
       </div>
-      <div class="form-row full">
-        <label for="fNote">หมายเหตุ</label>
-        <textarea id="fNote" class="textarea" placeholder="เช่น ติดต่อช่วงเย็น, มีผู้สูงอายุอยู่บ้าน, ต้องลงติดตามต่อ"></textarea>
-      </div>
-    </div>
-    <div class="note-box" id="mooHint">ระบบจะเดาหมู่ให้อัตโนมัติจากตำแหน่งหมุด ถ้าเดาผิดก็แก้ได้ ไม่มีใครถือโกรธ AI หรอกครับ</div>
-    <div class="sheet-actions">
-      <button class="sbtn cancel" id="btnCancel">ยกเลิก</button>
-      <button class="sbtn delete hidden" id="btnDelete">ลบข้อมูล</button>
-      <button class="sbtn save" id="btnSave">บันทึก</button>
-    </div>
-  </div>
+    </section>
+    <section class="sec">
+      <div class="sec-title"><h3>ภาพรวมรายหมู่</h3><div class="subtle">แตะเพื่อกรอง</div></div>
+      <div class="dashboard" id="dashboard"></div>
+    </section>
+    <section class="sec" id="contextInfo"></section>
+    <section class="list" id="list"></section>
+  </aside>
+</main>
+
+<footer class="footer"><b>Baan-Map V2</b> — Local-first + Firebase-ready + GitHub Pages-ready สำหรับฝ่ายปกครอง</footer>
 </div>
 
-<div class="overlay" id="helpOverlay">
-  <div class="sheet">
-    <h2>วิธีใช้งานแบบลุยงานจริง</h2>
-    <div class="sheet-sub">เข้าใจง่ายใน 4 ขั้นตอน ใช้ได้ทั้งหน้างานและหลังบ้าน</div>
-    <div class="help-steps">
-      <div class="help-step"><div class="help-num">1</div><div><b>เปิดเว็บแล้วเช็กว่าพร้อมทำงาน</b><p>ดูสถานะบันทึกอัตโนมัติด้านบน ถ้าเปิดบน GitHub Pages หรือเซิร์ฟเวอร์จะติดตั้งแอปได้ด้วย</p></div></div>
-      <div class="help-step"><div class="help-num">2</div><div><b>เพิ่มบ้านจากแผนที่หรือ GPS</b><p>กด ➕ เพิ่มบ้าน แล้วแตะจุดบนแผนที่ หรือกด 📍 ปักหมุดจุดที่ยืนเมื่ออยู่หน้าบ้านจริง</p></div></div>
-      <div class="help-step"><div class="help-num">3</div><div><b>กรอง ค้นหา และสรุปข้อมูลได้ทันที</b><p>ใช้ค้นหา หมู่ ป้ายกำกับ และหมายเหตุ เพื่อคุมข้อมูลภาคสนามหรือประชุมสรุปได้เร็ว</p></div></div>
-      <div class="help-step"><div class="help-num">4</div><div><b>สำรองและรวมไฟล์ทีม</b><p>แต่ละคนบันทึก JSON ของตัวเอง แล้วหัวหน้าทีมกด “รวมไฟล์ทีม” ระบบจะรวมและข้ามรายการซ้ำให้อัตโนมัติ</p></div></div>
-    </div>
-    <div class="note-box">
-      <b>หมายเหตุสำคัญ:</b> เวอร์ชันนี้เป็นเว็บแอปใช้งานจริงฝั่งหน้าเว็บ เก็บข้อมูลไว้ในเครื่องอัตโนมัติ เหมาะกับงานภาคสนามและการรวมข้อมูลทีมก่อนเชื่อมต่อฐานข้อมูลกลางในอนาคต
-    </div>
-    <div class="sheet-actions">
-      <button class="sbtn secondary" id="btnHelpClose">เข้าใจแล้ว เริ่มใช้เลย</button>
-    </div>
+<div class="overlay" id="formOverlay"><div class="sheet">
+  <h2 id="formTitle">เพิ่มบ้านใหม่</h2><div class="sheet-sub" id="formLoc">พิกัด -</div>
+  <div class="form">
+    <div class="field"><label>บ้านเลขที่ *</label><input id="fNo" type="text" placeholder="เช่น 45/2"></div>
+    <div class="field"><label>หมู่ที่ *</label><select id="fMoo" class="select"></select></div>
+    <div class="field row-full"><label>ชื่อเจ้าบ้าน *</label><input id="fName" type="text" placeholder="ชื่อ-นามสกุล"></div>
+    <div class="field"><label>เบอร์โทร</label><input id="fPhone" type="text" placeholder="08x-xxx-xxxx"></div>
+    <div class="field"><label>ป้ายกำกับ</label><select id="fTag" class="select"><option value="">— ไม่มี —</option><option>ผู้สูงอายุ</option><option>ผู้ป่วยติดเตียง</option><option>ผู้พิการ</option><option>อสม.</option><option>ผู้ช่วยผู้ใหญ่บ้าน</option><option>กลุ่มเปราะบาง</option></select></div>
+    <div class="field row-full"><label>หมายเหตุ</label><textarea id="fNote" class="textarea" placeholder="เช่น ติดต่อช่วงเย็น / ต้องลงติดตามต่อ"></textarea></div>
   </div>
-</div>
+  <div class="note" id="mooHint">ระบบเดาหมู่จากพิกัด ถ้าคลาดเคลื่อนแก้เองได้</div>
+  <div class="sheet-actions"><button class="sbtn cancel" id="btnCancel">ยกเลิก</button><button class="sbtn danger hidden" id="btnDelete">ลบข้อมูล</button><button class="sbtn save" id="btnSave">บันทึก</button></div>
+</div></div>
+
+<div class="overlay" id="authOverlay"><div class="sheet">
+  <h2>เข้าสู่ระบบ Firebase</h2><div class="sheet-sub">ใช้ Email/Password สำหรับเจ้าหน้าที่ ระบบจะซิงก์ข้อมูลบ้านผ่าน Cloud Firestore หลังล็อกอิน</div>
+  <div class="form">
+    <div class="field row-full"><label>Email</label><input id="authEmail" type="email" placeholder="name@example.com"></div>
+    <div class="field row-full"><label>Password</label><input id="authPassword" type="password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
+  </div>
+  <div class="note" id="authNote">ถ้ายังไม่ได้ใส่ค่า Firebase ใน firebase-config.js ระบบจะทำงานแบบ Local ก่อน</div>
+  <div class="sheet-actions">
+    <button class="sbtn cancel" id="btnAuthClose">ปิด</button>
+    <button class="sbtn pri" id="btnSignIn">เข้าสู่ระบบ</button>
+    <button class="sbtn save" id="btnSignUp">สร้างบัญชี</button>
+    <button class="sbtn danger hidden" id="btnSignOut">ออกจากระบบ</button>
+  </div>
+</div></div>
+
+<div class="overlay" id="helpOverlay"><div class="sheet">
+  <h2>วิธีใช้งาน Baan-Map V2</h2><div class="sheet-sub">ลุยงานสนามได้ แล้วค่อยซิงก์ขึ้น Firebase เหมือนข้าวเหนียวมีหมูปิ้งครบชุด</div>
+  <div class="help">
+    <div class="help-step"><div class="num">1</div><div><b>ตั้งค่า Firebase</b><p>ใส่ค่า firebaseConfig ในไฟล์ firebase-config.js แล้วเปิด Authentication + Firestore</p></div></div>
+    <div class="help-step"><div class="num">2</div><div><b>อัปขึ้น GitHub Pages</b><p>อัปโหลดไฟล์ทั้งหมดในโฟลเดอร์นี้ โดยให้ index.html อยู่หน้าแรกของ repo</p></div></div>
+    <div class="help-step"><div class="num">3</div><div><b>เพิ่มบ้านจากแผนที่/GPS</b><p>กดเพิ่มบ้านแล้วแตะจุด หรือยืนหน้าบ้านแล้วกดปักหมุดจุดที่ยืน</p></div></div>
+    <div class="help-step"><div class="num">4</div><div><b>ซิงก์และส่งออกรายงาน</b><p>เมื่อ Login แล้ว ระบบจะซิงก์ Firestore; ยังส่งออก JSON/CSV ได้เสมอ</p></div></div>
+  </div>
+  <div class="note">แผนที่ตั้งศูนย์กลางที่บางรักน้อยแล้ว แต่แนวเขตหมู่ยังเป็นค่าโดยประมาณ ควรปรับด้วยโหมด “แก้เขตหมู่” หรือแทนด้วย GeoJSON ทางการภายหลัง</div>
+  <div class="sheet-actions"><button class="sbtn pri" id="btnHelpClose">เริ่มใช้เลย</button></div>
+</div></div>
 
 <div class="toast" id="toast"></div>
 
+<script src="./firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 (() => {
-  const APP_VERSION = 'Baan-Map V1.0';
-  const STORAGE_KEY = 'baan_map_governance_app_v1';
-  const CENTER = [13.8565, 100.4510];
-  const DEFAULT_LOGO = './assets/logo-baan-map.svg';
+  const VERSION = "Baan-Map V2 Firebase";
+  const STORAGE_KEY = "baan_map_v2_firebase_local";
+  // Bang Rak Noi center from public coordinates: lat 13.8685313, lng 100.4562128
+  const CENTER = [13.8685313, 100.4562128];
+  const DEFAULT_LOGO = "./assets/logo-baan-map.svg";
   const MOO_META = {
-    1:{name:'บ้านบางรักน้อย', color:'#E11D48', info:[]},
-    2:{name:'บ้านบางรักน้อย', color:'#F59E0B', info:['วัดบางรักน้อย','โรงเรียนวัดบางรักน้อย','ศูนย์พัฒนาเด็กเล็กบางรักน้อย']},
-    3:{name:'บ้านบางรักน้อย', color:'#10B981', info:['ศูนย์ไม้ดอกไม้ประดับซอยช้าง']},
-    4:{name:'บ้านบางรักน้อย', color:'#3B82F6', info:['โรงเรียนป่าไม้อุทิศ 9','ศูนย์พัฒนาเด็กเล็กป่าไม้อุทิศ 9']},
-    5:{name:'บ้านหนองบัว', color:'#8B5CF6', info:[]},
-    6:{name:'บ้านบางประดู่', color:'#EC4899', info:['คลองบางประดู่','จุดเช็กอินนาแห่งเดียว']}
+    1:{name:"บ้านบางรักน้อย", color:"#E11D48", info:[]},
+    2:{name:"บ้านบางรักน้อย", color:"#F59E0B", info:["วัดบางรักน้อย","โรงเรียนวัดบางรักน้อย","ศูนย์พัฒนาเด็กเล็กบางรักน้อย","สำนักงานเทศบาลเมืองบางรักน้อย"]},
+    3:{name:"บ้านบางรักน้อย", color:"#10B981", info:["ศูนย์ไม้ดอกไม้ประดับซอยช้าง"]},
+    4:{name:"บ้านบางรักน้อย", color:"#3B82F6", info:["โรงเรียนป่าไม้อุทิศ 9","ศูนย์พัฒนาเด็กเล็กป่าไม้อุทิศ 9"]},
+    5:{name:"บ้านหนองบัว", color:"#8B5CF6", info:[]},
+    6:{name:"บ้านบางประดู่", color:"#EC4899", info:["คลองบางประดู่","รพ.สต.บ้านบางประดู่"]}
   };
   const TAMBON_INFO = {
-    pop:'ประชากรรวมประมาณ 21,136 คน (ชาย 9,649 / หญิง 11,487)',
-    area:'พื้นที่ 5.8 ตร.กม. (3,625 ไร่)',
-    extra:'หมู่บ้านจัดสรร 31 แห่ง · รพ.สต. 3 แห่ง · วัด 1 แห่ง (วัดบางรักน้อย)',
-    note:'แนวเขตหมู่เป็นข้อมูลตั้งต้นเพื่อใช้งานภาคสนาม สามารถแก้จุดแนวเขตได้เองให้ตรงของจริง'
+    pop:"เทศบาลเมืองบางรักน้อย อ.เมืองนนทบุรี จ.นนทบุรี",
+    area:"พื้นที่ประมาณ 5.8 ตร.กม. แบ่งเป็น 6 หมู่บ้าน",
+    extra:"ตั้งศูนย์กลางแผนที่ไว้ในพื้นที่บางรักน้อยแล้ว",
+    note:"แนวเขตหมู่ในระบบเป็นค่าเริ่มต้นโดยประมาณ เพื่อให้ใช้งานภาคสนามได้ก่อน ควรปรับจากข้อมูลจริงของเทศบาล/ฝ่ายปกครอง"
   };
-
   let zones = {
-    1:[[13.8688,100.4380],[13.8695,100.4462],[13.8618,100.4470],[13.8600,100.4415],[13.8628,100.4372]],
-    2:[[13.8695,100.4462],[13.8700,100.4548],[13.8622,100.4552],[13.8618,100.4470]],
-    3:[[13.8700,100.4548],[13.8705,100.4640],[13.8618,100.4648],[13.8622,100.4552]],
-    4:[[13.8618,100.4470],[13.8622,100.4552],[13.8530,100.4560],[13.8522,100.4478],[13.8600,100.4415]],
-    5:[[13.8622,100.4552],[13.8618,100.4648],[13.8445,100.4655],[13.8438,100.4488],[13.8530,100.4560]],
-    6:[[13.8600,100.4415],[13.8522,100.4478],[13.8438,100.4488],[13.8430,100.4395],[13.8560,100.4360]]
+    1:[[13.8745,100.4390],[13.8750,100.4490],[13.8687,100.4502],[13.8652,100.4442],[13.8680,100.4380]],
+    2:[[13.8750,100.4490],[13.8752,100.4598],[13.8686,100.4602],[13.8687,100.4502]],
+    3:[[13.8752,100.4598],[13.8744,100.4692],[13.8665,100.4696],[13.8686,100.4602]],
+    4:[[13.8687,100.4502],[13.8686,100.4602],[13.8585,100.4612],[13.8570,100.4510],[13.8652,100.4442]],
+    5:[[13.8585,100.4612],[13.8665,100.4696],[13.8470,100.4705],[13.8460,100.4555]],
+    6:[[13.8652,100.4442],[13.8570,100.4510],[13.8460,100.4555],[13.8455,100.4390],[13.8565,100.4358]]
   };
-
   let houses = [
-    {id:uid(), no:'9', moo:2, name:'นายสมศักดิ์ ตัวอย่าง', phone:'081-000-0001', tag:'ผู้ช่วยผู้ใหญ่บ้าน', note:'อยู่บ้านช่วงบ่าย', lat:13.8660, lng:100.4505, updatedAt:new Date().toISOString()},
-    {id:uid(), no:'27/3', moo:3, name:'นางสมร ตัวอย่าง', phone:'081-000-0002', tag:'ผู้สูงอายุ', note:'ติดตามสุขภาพ', lat:13.8662, lng:100.4595, updatedAt:new Date().toISOString()},
-    {id:uid(), no:'14', moo:5, name:'นายทดสอบ ระบบดี', phone:'081-000-0003', tag:'', note:'', lat:13.8530, lng:100.4600, updatedAt:new Date().toISOString()}
+    {id:uid(), no:"72/3", moo:2, name:"สำนักงานเทศบาลเมืองบางรักน้อย", phone:"", tag:"", note:"จุดอ้างอิงกลางระบบ", lat:13.8685313, lng:100.4562128, updatedAt:new Date().toISOString(), cloud:false}
   ];
-
-  let logoData = DEFAULT_LOGO;
-  let map = null;
-  let mapReady = false;
-  let markers = [];
-  let selectedId = null;
-  let addMode = false;
-  let editId = null;
-  let pendingLatLng = null;
-  let tempMarker = null;
-  let mooFilter = '';
-  let zoneLayers = {};
-  let zoneLabels = {};
-  let zoneEditMode = false;
-  let vertexHandles = [];
+  let logoData = DEFAULT_LOGO, map=null, mapReady=false, markers=[], selectedId=null, addMode=false, editId=null, pendingLatLng=null, tempMarker=null, mooFilter="", zoneEdit=false, zoneLayers={}, zoneLabels={}, handles=[];
+  let fb = {enabled:false, ready:false, user:null, unsub:null, api:null};
   let deferredPrompt = null;
 
-  const $ = id => document.getElementById(id);
-  const esc = s => String(s || '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-  const norm = s => String(s || '').toLowerCase().trim();
-  const houseKey = h => `${String(h.moo || '')}|${String(h.no || '').trim().toLowerCase()}`;
-  const phoneClean = s => String(s || '').replace(/[^0-9+]/g, '');
-  const navUrl = h => `https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}`;
-
-  function uid(){ return 'h-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); }
-  function nowThai(){ return new Date().toLocaleString('th-TH', {dateStyle:'short', timeStyle:'short'}); }
-  function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(t._timer); t._timer=setTimeout(() => t.style.display='none', 2600); }
-  function setSyncState(text, warn=false){ $('syncState').classList.toggle('warn', !!warn); $('syncState').innerHTML = `<span class="dot"></span><span>${esc(text)}</span>`; }
-  function setLastSaved(text){ $('lastSavedPill').textContent = text; }
-  function getPayload(){ return {version:APP_VERSION, logo:logoData, updatedAt:new Date().toISOString(), zones, houses}; }
-  function persist(silent=true){
-    try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(getPayload()));
-      setSyncState('บันทึกอัตโนมัติ ' + nowThai());
-      setLastSaved('อัปเดตล่าสุด ' + nowThai());
-      if(!silent) toast('บันทึกอัตโนมัติในเครื่องแล้ว ✓');
-    }catch(err){
-      setSyncState('บันทึกในเครื่องไม่สำเร็จ', true);
-      if(!silent) toast('พื้นที่จัดเก็บในเครื่องเต็ม กรุณาสำรองไฟล์');
-    }
-  }
-  function loadLocal(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw){ setSyncState('บันทึกอัตโนมัติพร้อมใช้งาน'); return false; }
-      const data = JSON.parse(raw);
-      houses = Array.isArray(data.houses) ? data.houses : houses;
-      zones = data.zones || zones;
-      logoData = data.logo || logoData;
-      $('brandLogo').src = logoData;
-      setSyncState('กู้ข้อมูลล่าสุดเรียบร้อย');
-      setLastSaved('กู้ข้อมูลเมื่อ ' + nowThai());
-      return true;
-    }catch(err){
-      setSyncState('อ่าน autosave ไม่สำเร็จ', true);
-      return false;
-    }
-  }
-  function download(filename, content, type){
-    const blob = new Blob([content], {type});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1200);
-  }
-  function csvEscape(v){ const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
-  function toCSV(){
-    const rows = [
-      ['หมู่','บ้านเลขที่','ชื่อเจ้าบ้าน','เบอร์โทร','ป้ายกำกับ','หมายเหตุ','ละติจูด','ลองจิจูด','นำทาง']
-    ].concat(houses.map(h => [h.moo,h.no,h.name,h.phone||'',h.tag||'',h.note||'',h.lat,h.lng,navUrl(h)]));
-    return '\ufeff' + rows.map(row => row.map(csvEscape).join(',')).join('\n');
-  }
-  function safeMap(action){ if(mapReady && map) action(); }
-  function fitAll(){
-    safeMap(() => {
-      if(houses.length){ map.fitBounds(L.latLngBounds(houses.map(h => [h.lat, h.lng])).pad(0.22)); }
-      else map.setView(CENTER, 14);
-    });
-  }
-  function getHouseById(id){ return houses.find(h => h.id === id) || null; }
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
+  const norm=s=>String(s||"").toLowerCase().trim();
+  const navUrl=h=>`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}`;
+  const phoneClean=s=>String(s||"").replace(/[^0-9+]/g,"");
+  const houseKey=h=>`${String(h.moo||"")}|${String(h.no||"").trim().toLowerCase()}`;
+  function uid(){return "h-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
+  function nowThai(){return new Date().toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"})}
+  function toast(msg){const t=$("toast");t.textContent=msg;t.style.display="block";clearTimeout(t._x);t._x=setTimeout(()=>t.style.display="none",2600)}
+  function setSync(text,warn=false){$("syncState").classList.toggle("warn",!!warn);$("syncState").innerHTML=`<span class="dot"></span><span>${esc(text)}</span>`}
+  function setCloud(text,warn=true){$("cloudState").classList.toggle("warn",!!warn);$("cloudState").innerHTML=`<span class="dot"></span><span>${esc(text)}</span>`}
+  function setSaved(text){$("lastSaved").textContent=text}
+  function payload(){return {version:VERSION,updatedAt:new Date().toISOString(),logo:logoData,zones,houses}}
+  function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(payload()));setSync("Local autosave "+nowThai());setSaved("บันทึกล่าสุด "+nowThai())}catch(e){setSync("Local autosave ไม่สำเร็จ",true)}}
+  function loadLocal(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;const d=JSON.parse(raw);houses=Array.isArray(d.houses)?d.houses:houses;zones=d.zones||zones;logoData=d.logo||logoData;$("brandLogo").src=logoData;setSync("กู้ข้อมูล Local แล้ว");return true}catch(e){setSync("อ่าน Local ไม่สำเร็จ",true);return false}}
+  function download(name,content,type){const blob=new Blob([content],{type});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1200)}
+  function csvEscape(v){const s=String(v??"");return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+  function toCSV(){const rows=[["หมู่","บ้านเลขที่","ชื่อเจ้าบ้าน","เบอร์โทร","ป้ายกำกับ","หมายเหตุ","ละติจูด","ลองจิจูด","นำทาง"]].concat(houses.map(h=>[h.moo,h.no,h.name,h.phone||"",h.tag||"",h.note||"",h.lat,h.lng,navUrl(h)]));return "\ufeff"+rows.map(r=>r.map(csvEscape).join(",")).join("\n")}
+  function safeMap(fn){if(mapReady&&map)fn()}
+  function allZoneLatLngs(){return Object.values(zones).flat().map(p=>[p[0],p[1]])}
+  function fitBangRakNoi(){safeMap(()=>{map.fitBounds(L.latLngBounds(allZoneLatLngs()).pad(.08));setTimeout(()=>map.invalidateSize(),100)})}
 
   function initMap(){
-    if(!window.L){ $('mapFallback').classList.add('show'); return; }
+    if(!window.L){$("mapFallback").classList.add("show");return}
     try{
-      map = L.map('map', {zoomControl:true}).setView(CENTER, 14);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
-      mapReady = true;
-      map.on('click', e => {
-        if(!addMode || zoneEditMode) return;
-        pendingLatLng = e.latlng;
-        editId = null;
-        openForm(null);
-      });
-      drawZones();
-      rebuildMarkers();
-      setTimeout(() => map.invalidateSize(), 200);
-      window.addEventListener('resize', () => map.invalidateSize());
-    }catch(err){
-      mapReady = false;
-      $('mapFallback').classList.add('show');
-      console.error(err);
-    }
+      map=L.map("map",{zoomControl:true}).setView(CENTER,14);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+      mapReady=true;
+      map.on("click",e=>{if(!addMode||zoneEdit)return;pendingLatLng=e.latlng;editId=null;openForm(null)});
+      drawZones();rebuildMarkers();
+      L.marker(CENTER,{icon:L.divIcon({className:"",iconSize:null,iconAnchor:[18,14],html:`<div class="plate-pin active">บางรักน้อย</div>`})}).addTo(map);
+      fitBangRakNoi();
+      window.addEventListener("resize",()=>map.invalidateSize());
+    }catch(e){$("mapFallback").classList.add("show");console.error(e)}
   }
+  function centroid(pts){let a=0,b=0;pts.forEach(p=>{a+=p[0];b+=p[1]});return[a/pts.length,b/pts.length]}
+  function pointInZone(lat,lng,pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const yi=pts[i][0],xi=pts[i][1],yj=pts[j][0],xj=pts[j][1];if(((yi>lat)!==(yj>lat))&&(lng<(xj-xi)*(lat-yi)/(yj-yi)+xi))inside=!inside}return inside}
+  function detectMoo(lat,lng){for(const m in zones)if(pointInZone(lat,lng,zones[m]))return m;return""}
+  function drawZones(){if(!mapReady)return;Object.values(zoneLayers).forEach(l=>map.removeLayer(l));Object.values(zoneLabels).forEach(l=>map.removeLayer(l));zoneLayers={};zoneLabels={};for(const m in zones){const meta=MOO_META[m],dim=mooFilter&&mooFilter!==String(m);zoneLayers[m]=L.polygon(zones[m],{color:meta.color,weight:dim?1.3:2.5,fillColor:meta.color,fillOpacity:dim?.06:.20,dashArray:"6 4"}).addTo(map).on("click",()=>{if(!zoneEdit&&!addMode)setMooFilter(String(m))});zoneLabels[m]=L.marker(centroid(zones[m]),{interactive:false,icon:L.divIcon({className:"",iconSize:null,html:`<div class="zone-label" style="opacity:${dim?.35:1}">หมู่ ${m}<small>${esc(meta.name)}</small></div>`})}).addTo(map)}}
+  function toggleZone(){if(!mapReady){toast("แผนที่ยังไม่พร้อม");return}zoneEdit=!zoneEdit;$("btnZone").textContent=zoneEdit?"✔ เสร็จสิ้น":"🗺️ แก้เขตหมู่";$("banner").style.display=zoneEdit?"block":"none";$("banner").textContent="ลากจุดสีขาวเพื่อปรับแนวเขตหมู่";if(zoneEdit){for(const m in zones){zones[m].forEach((pt,i)=>{const h=L.marker(pt,{draggable:true,icon:L.divIcon({className:"",iconSize:[16,16],iconAnchor:[8,8],html:'<div class="vertex"></div>'})}).addTo(map);h.on("drag",e=>{const p=e.target.getLatLng();zones[m][i]=[p.lat,p.lng];zoneLayers[m].setLatLngs(zones[m])});h.on("dragend",()=>zoneLabels[m].setLatLng(centroid(zones[m])));handles.push(h)})}toast("เปิดโหมดปรับเขตแล้ว")}else{handles.forEach(h=>map.removeLayer(h));handles=[];drawZones();persist();toast("บันทึกแนวเขตแล้ว ✓")}}
 
-  function centroid(pts){ let lat=0,lng=0; pts.forEach(p => { lat += p[0]; lng += p[1]; }); return [lat / pts.length, lng / pts.length]; }
-  function pointInZone(lat, lng, pts){
-    let inside = false;
-    for(let i=0,j=pts.length-1;i<pts.length;j=i++){
-      const yi = pts[i][0], xi = pts[i][1], yj = pts[j][0], xj = pts[j][1];
-      const intersect = ((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
-      if(intersect) inside = !inside;
-    }
-    return inside;
-  }
-  function detectMoo(lat, lng){ for(const m in zones){ if(pointInZone(lat, lng, zones[m])) return m; } return ''; }
+  function buildChips(){let html=`<button class="chip all ${mooFilter===""?"on":""}" data-m="">ทุกหมู่</button>`;Object.keys(MOO_META).forEach(m=>html+=`<button class="chip ${mooFilter===m?"on":""}" data-m="${m}" style="background:${MOO_META[m].color}">● หมู่ ${m}</button>`);$("chips").innerHTML=html}
+  function setMooFilter(v){mooFilter=v;buildChips();renderDashboard();renderContext();renderList();drawZones();if(v&&mapReady)map.fitBounds(L.polygon(zones[v]).getBounds().pad(.15))}
+  function getHouse(id){return houses.find(h=>h.id===id)}
+  function popup(h){return `<div><div class="pp-name">${esc(h.name)}</div><div class="pp-addr">บ้านเลขที่ ${esc(h.no)} · หมู่ ${esc(h.moo)} ${esc(MOO_META[h.moo]?.name||"")}${h.phone?" · "+esc(h.phone):""}</div><div class="pp-btns"><a class="pp-btn nav" target="_blank" rel="noopener" href="${navUrl(h)}">🧭 นำทาง</a>${h.phone?`<a class="pp-btn call" href="tel:${phoneClean(h.phone)}">📞 โทร</a>`:""}</div></div>`}
+  function rebuildMarkers(){if(!mapReady)return;markers.forEach(m=>map.removeLayer(m));markers=[];houses.forEach(h=>{const c=MOO_META[h.moo]?.color||"#2563EB";const mk=L.marker([h.lat,h.lng],{icon:L.divIcon({className:"",iconSize:null,iconAnchor:[18,14],html:`<div class="plate-pin" id="pin-${h.id}" style="background:${c}">${esc(h.no)}</div>`})}).addTo(map).bindPopup(popup(h));mk.on("click",()=>selectHouse(h.id,false));markers.push(mk)})}
+  function selectHouse(id,open){if(selectedId){const p=document.getElementById("pin-"+selectedId);if(p)p.classList.remove("active")}selectedId=id;const p=document.getElementById("pin-"+id);if(p)p.classList.add("active");const h=getHouse(id);if(!h)return;safeMap(()=>map.flyTo([h.lat,h.lng],17,{duration:.55}));if(open){const mk=markers.find(m=>{const ll=m.getLatLng();return Math.abs(ll.lat-h.lat)<1e-7&&Math.abs(ll.lng-h.lng)<1e-7});if(mk)mk.openPopup()}renderList()}
 
-  function drawZones(){
-    if(!mapReady) return;
-    Object.values(zoneLayers).forEach(l => map.removeLayer(l));
-    Object.values(zoneLabels).forEach(l => map.removeLayer(l));
-    zoneLayers = {}; zoneLabels = {};
-    for(const m in zones){
-      const meta = MOO_META[m];
-      const dim = mooFilter && mooFilter !== String(m);
-      zoneLayers[m] = L.polygon(zones[m], {
-        color: meta.color,
-        weight: dim ? 1.4 : 2.4,
-        fillColor: meta.color,
-        fillOpacity: dim ? 0.06 : 0.20,
-        dashArray: '6 4'
-      }).addTo(map).on('click', () => { if(!zoneEditMode && !addMode) setMooFilter(String(m)); });
+  function renderSummary(){const total=houses.length, tagged=houses.filter(h=>h.tag).length, phone=houses.filter(h=>h.phone).length, cloud=houses.filter(h=>h.cloud).length;$("summary").innerHTML=`<div class="stat pri"><small>ทั้งหมด</small><b>${total}</b></div><div class="stat"><small>มีป้ายกำกับ</small><b>${tagged}</b></div><div class="stat"><small>มีเบอร์โทร</small><b>${phone}</b></div><div class="stat"><small>อยู่บน Firebase</small><b>${cloud}</b></div>`}
+  function filtered(){const q=norm($("q").value),tag=$("tagFilter").value,note=norm($("noteFilter").value);let items=houses.filter(h=>{if(mooFilter&&String(h.moo)!==String(mooFilter))return false;if(tag&&h.tag!==tag)return false;if(note&&!norm(h.note).includes(note))return false;if(!q)return true;return[h.name,h.no,h.phone,h.tag,h.note,String(h.moo)].some(v=>norm(v).includes(q))});const s=$("sortBy").value;items=items.slice().sort((a,b)=>s==="name"?norm(a.name).localeCompare(norm(b.name),"th"):s==="house"?norm(a.no).localeCompare(norm(b.no),"th",{numeric:true}):s==="moo"?Number(a.moo)-Number(b.moo)||norm(a.no).localeCompare(norm(b.no),"th",{numeric:true}):new Date(b.updatedAt||0)-new Date(a.updatedAt||0));return items}
+  function renderDashboard(){const counts=Object.fromEntries(Object.keys(MOO_META).map(m=>[m,0]));houses.forEach(h=>counts[h.moo]=(counts[h.moo]||0)+1);$("dashboard").innerHTML=Object.keys(MOO_META).map(m=>{const meta=MOO_META[m];return `<div class="moo-card ${mooFilter===m?"on":""}" data-moo="${m}"><div class="row"><div><span class="sw" style="background:${meta.color}"></span> <h4 style="display:inline">หมู่ ${m}</h4></div><strong>${counts[m]||0}</strong></div><p>${esc(meta.name)}</p></div>`}).join("")}
+  function renderContext(){if(mooFilter){const meta=MOO_META[mooFilter];$("contextInfo").innerHTML=`<div class="info-card" style="border-left-color:${meta.color}"><h4>ข้อมูลหมู่ ${mooFilter} ${esc(meta.name)}</h4>${meta.info.length?"<ul>"+meta.info.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":'<div class="src">ยังไม่มีข้อมูลสถานที่สำคัญ</div>'}<div class="src">แตะ “ทุกหมู่” เพื่อกลับภาพรวม</div></div>`}else{$("contextInfo").innerHTML=`<div class="info-card"><h4>ภาพรวมบางรักน้อย</h4><ul><li>${esc(TAMBON_INFO.pop)}</li><li>${esc(TAMBON_INFO.area)}</li><li>${esc(TAMBON_INFO.extra)}</li></ul><div class="src">${esc(TAMBON_INFO.note)}</div></div>`}}
+  function fmt(d){try{return d?new Date(d).toLocaleString("th-TH",{dateStyle:"short",timeStyle:"short"}):"ยังไม่ระบุ"}catch{return"ยังไม่ระบุ"}}
+  function renderList(){renderSummary();const items=filtered();$("count").textContent=items.length+" หลังคาเรือน";if(!items.length){$("list").innerHTML='<div class="empty"><b>ยังไม่พบข้อมูล</b>ลองเปลี่ยนตัวกรอง หรือกดเพิ่มบ้าน</div>';return}$("list").innerHTML=items.map(h=>{const c=MOO_META[h.moo]?.color||"#2563EB";return `<article class="house ${selectedId===h.id?"selected":""}" data-id="${h.id}" style="border-left-color:${c}"><div class="plate" style="background:${c}"><span>${esc(h.no)}</span><small>หมู่ ${esc(h.moo)}</small></div><div><div class="house-name">${esc(h.name)}</div><div class="house-meta">${h.phone?`<div>📞 ${esc(h.phone)}</div>`:""}<div>📍 ${esc(MOO_META[h.moo]?.name||"ไม่ระบุหมู่")}</div><div>🕒 ${esc(fmt(h.updatedAt))}</div></div><div class="tags">${h.tag?`<span class="tag">🏷️ ${esc(h.tag)}</span>`:""}${h.note?`<span class="tag note">📝 ${esc(h.note)}</span>`:""}${h.cloud?'<span class="tag cloud">☁️ Firebase</span>':""}</div></div><div class="card-actions"><button class="cbtn nav" data-nav="${h.id}">🧭 นำทาง</button><button class="cbtn edit" data-edit="${h.id}">✏️ แก้ไข</button></div></article>`}).join("")}
 
-      zoneLabels[m] = L.marker(centroid(zones[m]), {
-        interactive:false,
-        icon: L.divIcon({
-          className:'',
-          iconSize:null,
-          html:`<div class="zone-label" style="opacity:${dim ? 0.35 : 1}">หมู่ ${m}<small>${esc(meta.name)}</small></div>`
-        })
-      }).addTo(map);
-    }
-  }
+  function buildMooOptions(sel=""){$("fMoo").innerHTML='<option value="">— เลือกหมู่ —</option>'+Object.keys(MOO_META).map(m=>`<option value="${m}" ${String(sel)===String(m)?"selected":""}>หมู่ ${m} ${esc(MOO_META[m].name)}</option>`).join("")}
+  function toggleAdd(force){addMode=typeof force==="boolean"?force:!addMode;$("banner").style.display=addMode?"block":zoneEdit?"block":"none";if(addMode){$("banner").textContent="แตะตำแหน่งบ้านบนแผนที่";$("btnAdd").textContent="✖ ยกเลิกเพิ่มบ้าน";$("btnAdd").classList.add("cancel")}else{$("btnAdd").textContent="➕ เพิ่มบ้าน";$("btnAdd").classList.remove("cancel");if(!zoneEdit)$("banner").style.display="none"}}
+  function openForm(id){editId=id;$("btnDelete").classList.toggle("hidden",!id);if(id){const h=getHouse(id);$("formTitle").textContent="แก้ไขข้อมูลบ้าน";$("formLoc").textContent=`พิกัด ${Number(h.lat).toFixed(5)}, ${Number(h.lng).toFixed(5)}`;buildMooOptions(h.moo);$("fNo").value=h.no||"";$("fName").value=h.name||"";$("fPhone").value=h.phone||"";$("fTag").value=h.tag||"";$("fNote").value=h.note||"";$("mooHint").textContent="แก้ไขแล้วกดบันทึก ระบบจะบันทึกในเครื่อง และซิงก์ Firebase ถ้าล็อกอินอยู่"}else{if(!pendingLatLng){toast("กรุณาแตะตำแหน่งบนแผนที่ หรือใช้ GPS ก่อน");return}$("formTitle").textContent="เพิ่มบ้านใหม่";$("formLoc").textContent=`พิกัด ${pendingLatLng.lat.toFixed(5)}, ${pendingLatLng.lng.toFixed(5)}`;const auto=detectMoo(pendingLatLng.lat,pendingLatLng.lng);buildMooOptions(auto);$("fNo").value="";$("fName").value="";$("fPhone").value="";$("fTag").value="";$("fNote").value="";$("mooHint").textContent=auto?`ระบบคาดว่าอยู่หมู่ ${auto} ${MOO_META[auto].name}`:"ตำแหน่งอยู่นอกแนวเขตตั้งต้น กรุณาเลือกหมู่เอง";safeMap(()=>{if(tempMarker)map.removeLayer(tempMarker);tempMarker=L.marker(pendingLatLng,{icon:L.divIcon({className:"",iconSize:null,iconAnchor:[18,14],html:'<div class="plate-pin active">ใหม่</div>'})}).addTo(map)})}$("formOverlay").classList.add("show")}
+  function closeForm(){$("formOverlay").classList.remove("show");safeMap(()=>{if(tempMarker){map.removeLayer(tempMarker);tempMarker=null}});if(addMode)toggleAdd(false)}
+  async function saveForm(){const no=$("fNo").value.trim(),moo=parseInt($("fMoo").value,10),name=$("fName").value.trim(),phone=$("fPhone").value.trim(),tag=$("fTag").value,note=$("fNote").value.trim();if(!no||!moo||!name){toast("กรอกบ้านเลขที่ หมู่ และชื่อเจ้าบ้านก่อนครับ");return}const data={no,moo,name,phone,tag,note};const dup=houses.findIndex(h=>h.id!==editId&&houseKey(h)===houseKey(data));if(dup>-1&&!confirm("พบบ้านเลขที่นี้ในหมู่เดียวกันอยู่แล้ว ต้องการบันทึกซ้ำจริงไหม?"))return;let saved;if(editId){saved=getHouse(editId);Object.assign(saved,data,{updatedAt:new Date().toISOString()});toast("แก้ไขข้อมูลแล้ว ✓")}else{saved={...data,id:uid(),lat:pendingLatLng.lat,lng:pendingLatLng.lng,updatedAt:new Date().toISOString(),cloud:false};houses.push(saved);toast("เพิ่มบ้านเลขที่ "+no+" แล้ว ✓")}rebuildMarkers();renderDashboard();renderContext();renderList();persist();if(fb.user)await cloudSave(saved);closeForm()}
+  async function deleteCurrent(){if(!editId)return;if(!confirm("ต้องการลบข้อมูลบ้านหลังนี้ใช่ไหม?"))return;const id=editId;houses=houses.filter(h=>h.id!==id);if(selectedId===id)selectedId=null;rebuildMarkers();renderDashboard();renderContext();renderList();persist();if(fb.user)await cloudDelete(id);closeForm();toast("ลบข้อมูลแล้ว")}
+  function importFile(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);houses=Array.isArray(d)?d:(Array.isArray(d.houses)?d.houses:houses);zones=d.zones||zones;logoData=d.logo||logoData;houses=houses.map(h=>({id:h.id||uid(),updatedAt:h.updatedAt||new Date().toISOString(),note:h.note||"",cloud:!!h.cloud,...h}));$("brandLogo").src=logoData;selectedId=null;buildChips();renderDashboard();renderContext();renderList();drawZones();rebuildMarkers();fitBangRakNoi();persist();toast("เปิดไฟล์สำเร็จ "+houses.length+" หลังคาเรือน")}catch(e){toast("ไฟล์ไม่ถูกต้อง")}};r.readAsText(file)}
+  function mergeFiles(files){if(!files.length)return;let done=0,added=0,skip=0,bad=0;const keys=new Set(houses.map(houseKey));files.forEach(file=>{const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result),list=Array.isArray(d)?d:(d.houses||[]);list.forEach(h=>{if(!h||!h.no||h.lat==null||h.lng==null)return;const p={id:h.id||uid(),updatedAt:h.updatedAt||new Date().toISOString(),note:h.note||"",cloud:!!h.cloud,...h};const k=houseKey(p);if(keys.has(k)){skip++;return}keys.add(k);houses.push(p);added++})}catch(e){bad++}if(++done===files.length){rebuildMarkers();renderDashboard();renderContext();renderList();persist();toast(`รวมไฟล์เสร็จ เพิ่ม ${added} · ซ้ำ ${skip}${bad?" · ไฟล์เสีย "+bad:""}`)}};r.readAsText(file)})}
 
-  function toggleZoneEdit(){
-    if(!mapReady){ toast('แผนที่ยังไม่พร้อม จึงแก้แนวเขตไม่ได้'); return; }
-    zoneEditMode = !zoneEditMode;
-    $('btnZone').textContent = zoneEditMode ? '✔ เสร็จสิ้น' : '🗺️ แก้เขตหมู่';
-    $('banner').style.display = zoneEditMode ? 'block' : 'none';
-    $('banner').textContent = 'ลากจุดสีขาวเพื่อปรับแนวเขตหมู่';
-    if(zoneEditMode){
-      for(const m in zones){
-        zones[m].forEach((pt, i) => {
-          const handle = L.marker(pt, {
-            draggable:true,
-            icon:L.divIcon({className:'', iconSize:[16,16], iconAnchor:[8,8], html:'<div class="vertex-handle"></div>'})
-          }).addTo(map);
-          handle.on('drag', e => {
-            const p = e.target.getLatLng();
-            zones[m][i] = [p.lat, p.lng];
-            zoneLayers[m].setLatLngs(zones[m]);
-          });
-          handle.on('dragend', () => zoneLabels[m].setLatLng(centroid(zones[m])));
-          vertexHandles.push(handle);
-        });
-      }
-      toast('โหมดปรับแนวเขตเปิดแล้ว');
-    }else{
-      vertexHandles.forEach(h => map.removeLayer(h));
-      vertexHandles = [];
-      drawZones();
-      persist();
-      toast('บันทึกแนวเขตเรียบร้อย ✓');
-    }
-  }
-
-  function buildChips(){
-    let html = `<button class="chip all ${mooFilter === '' ? 'on' : ''}" data-m="">ทุกหมู่</button>`;
-    Object.keys(MOO_META).forEach(m => {
-      html += `<button class="chip ${mooFilter === m ? 'on' : ''}" data-m="${m}" style="background:${MOO_META[m].color}">● หมู่ ${m}</button>`;
-    });
-    $('chips').innerHTML = html;
-  }
-  function setMooFilter(value){
-    mooFilter = value;
-    buildChips();
-    renderDashboard();
-    renderContextInfo();
-    renderList();
-    drawZones();
-    if(value && mapReady){ map.fitBounds(L.polygon(zones[value]).getBounds().pad(0.15)); }
-  }
-
-  function popupHtml(h){
-    return `<div><div class="pp-name">${esc(h.name)}</div><div class="pp-addr">บ้านเลขที่ ${esc(h.no)} · หมู่ ${esc(h.moo)} ${esc(MOO_META[h.moo]?.name || '')}${h.phone ? ' · ' + esc(h.phone) : ''}</div><div class="pp-btns"><a class="pp-btn nav" target="_blank" rel="noopener" href="${navUrl(h)}">🧭 นำทาง</a>${h.phone ? `<a class="pp-btn call" href="tel:${phoneClean(h.phone)}">📞 โทร</a>` : ''}</div></div>`;
-  }
-  function rebuildMarkers(){
-    if(!mapReady) return;
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-    houses.forEach(h => {
-      const color = MOO_META[h.moo] ? MOO_META[h.moo].color : '#2563EB';
-      const marker = L.marker([h.lat, h.lng], {
-        icon:L.divIcon({className:'', iconSize:null, iconAnchor:[18,14], html:`<div class="plate-pin" id="pin-${h.id}" style="background:${color}">${esc(h.no)}</div>`})
-      }).addTo(map).bindPopup(popupHtml(h));
-      marker.on('click', () => selectHouse(h.id, false));
-      markers.push(marker);
-    });
-  }
-
-  function selectHouse(id, openPopup){
-    if(selectedId){ const prev = document.getElementById(`pin-${selectedId}`); if(prev) prev.classList.remove('active'); }
-    selectedId = id;
-    const current = document.getElementById(`pin-${id}`); if(current) current.classList.add('active');
-    const h = getHouseById(id);
-    if(!h) return;
-    safeMap(() => map.flyTo([h.lat, h.lng], 17, {duration:0.55}));
-    if(openPopup){ const marker = markers.find(m => { const ll = m.getLatLng(); return Math.abs(ll.lat - h.lat) < 1e-7 && Math.abs(ll.lng - h.lng) < 1e-7; }); if(marker) marker.openPopup(); }
-    renderList();
-  }
-
-  function renderSummary(){
-    const total = houses.length;
-    const tagged = houses.filter(h => h.tag).length;
-    const withPhone = houses.filter(h => h.phone).length;
-    const mooCovered = new Set(houses.map(h => h.moo)).size;
-    $('summaryCards').innerHTML = `
-      <div class="quick-stat primary"><small>ทั้งหมด</small><b>${total}</b></div>
-      <div class="quick-stat"><small>มีป้ายกำกับ</small><b>${tagged}</b></div>
-      <div class="quick-stat"><small>มีเบอร์โทร</small><b>${withPhone}</b></div>
-      <div class="quick-stat"><small>ครอบคลุมหมู่</small><b>${mooCovered}/6</b></div>
-    `;
-  }
-
-  function currentFilteredItems(){
-    const query = norm($('q').value);
-    const tag = $('tagFilter').value;
-    const noteKeyword = norm($('noteFilter').value);
-    let items = houses.filter(h => {
-      if(mooFilter && String(h.moo) !== String(mooFilter)) return false;
-      if(tag && h.tag !== tag) return false;
-      if(noteKeyword && !norm(h.note).includes(noteKeyword)) return false;
-      if(!query) return true;
-      return [h.name, h.no, h.phone, h.tag, h.note, String(h.moo)].some(v => norm(v).includes(query));
-    });
-    const sortBy = $('sortBy').value;
-    items = items.slice().sort((a,b) => {
-      if(sortBy === 'name') return norm(a.name).localeCompare(norm(b.name), 'th');
-      if(sortBy === 'house') return norm(a.no).localeCompare(norm(b.no), 'th', {numeric:true});
-      if(sortBy === 'moo') return Number(a.moo) - Number(b.moo) || norm(a.no).localeCompare(norm(b.no), 'th', {numeric:true});
-      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-    });
-    return items;
-  }
-
-  function renderDashboard(){
-    const counts = Object.fromEntries(Object.keys(MOO_META).map(m => [m, 0]));
-    houses.forEach(h => { counts[h.moo] = (counts[h.moo] || 0) + 1; });
-    $('dashboardGrid').innerHTML = Object.keys(MOO_META).map(m => {
-      const meta = MOO_META[m];
-      return `<div class="moo-card ${mooFilter === m ? 'on' : ''}" data-moo-card="${m}"><div class="row"><div style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:${meta.color}"></span><h4>หมู่ ${m}</h4></div><strong>${counts[m] || 0}</strong></div><p>${esc(meta.name)}</p></div>`;
-    }).join('');
-  }
-
-  function renderContextInfo(){
-    if(mooFilter){
-      const meta = MOO_META[mooFilter];
-      $('contextInfo').innerHTML = `<div class="info-card" style="border-left-color:${meta.color}"><h4>ข้อมูลหมู่ ${mooFilter} ${esc(meta.name)}</h4>${meta.info.length ? '<ul>' + meta.info.map(item => `<li>${esc(item)}</li>`).join('') + '</ul>' : '<div class="src">ยังไม่มีข้อมูลสถานที่สำคัญ สามารถเติมต่อในโค้ดได้</div>'}<div class="src">แตะการ์ดหมู่อื่นหรือกด “ทุกหมู่” ด้านบนเพื่อกลับภาพรวม</div></div>`;
-    }else{
-      $('contextInfo').innerHTML = `<div class="info-card"><h4>ภาพรวม ต.บางรักน้อย</h4><ul><li>${esc(TAMBON_INFO.pop)}</li><li>${esc(TAMBON_INFO.area)}</li><li>${esc(TAMBON_INFO.extra)}</li></ul><div class="src">${esc(TAMBON_INFO.note)}</div></div>`;
-    }
-  }
-
-  function renderList(){
-    renderSummary();
-    const items = currentFilteredItems();
-    $('count').textContent = `${items.length} หลังคาเรือน`;
-    if(!items.length){
-      $('list').innerHTML = `<div class="empty"><b>ยังไม่พบข้อมูลที่ตรงเงื่อนไข</b>ลองเปลี่ยนตัวกรอง หรือกด ➕ เพิ่มบ้าน เพื่อเริ่มบันทึกข้อมูล</div>`;
-      return;
-    }
-    $('list').innerHTML = items.map(h => {
-      const color = MOO_META[h.moo] ? MOO_META[h.moo].color : '#2563EB';
-      return `<article class="house ${selectedId === h.id ? 'selected' : ''}" data-id="${h.id}" style="border-left-color:${color}"><div class="plate" style="background:${color}"><span>${esc(h.no)}</span><small>หมู่ ${esc(h.moo)}</small></div><div><div class="house-name">${esc(h.name)}</div><div class="house-meta">${h.phone ? `<div>📞 ${esc(h.phone)}</div>` : ''}<div>📍 ${esc(MOO_META[h.moo]?.name || 'ไม่ระบุหมู่')}</div><div>🕒 ${esc(formatDate(h.updatedAt))}</div></div><div class="inline-tags">${h.tag ? `<span class="tag">🏷️ ${esc(h.tag)}</span>` : ''}${h.note ? `<span class="tag note">📝 ${esc(h.note)}</span>` : ''}</div></div><div class="card-actions"><button class="cbtn nav" data-nav="${h.id}">🧭 นำทาง</button><button class="cbtn edit" data-edit="${h.id}">✏️ แก้ไข</button></div></article>`;
-    }).join('');
-  }
-
-  function formatDate(value){
-    if(!value) return 'ยังไม่ระบุ';
-    try{ return new Date(value).toLocaleString('th-TH', {dateStyle:'short', timeStyle:'short'}); }
-    catch{ return 'ยังไม่ระบุ'; }
-  }
-
-  function buildMooOptions(selected=''){
-    $('fMoo').innerHTML = '<option value="">— เลือกหมู่ —</option>' + Object.keys(MOO_META).map(m => `<option value="${m}" ${String(selected) === String(m) ? 'selected' : ''}>หมู่ ${m} ${esc(MOO_META[m].name)}</option>`).join('');
-  }
-
-  function openForm(id){
-    editId = id;
-    $('btnDelete').classList.toggle('hidden', !id);
-    if(id){
-      const h = getHouseById(id);
-      if(!h) return;
-      $('formTitle').textContent = 'แก้ไขข้อมูลบ้าน';
-      $('formLoc').textContent = `พิกัด ${Number(h.lat).toFixed(5)}, ${Number(h.lng).toFixed(5)}`;
-      buildMooOptions(h.moo);
-      $('fNo').value = h.no || '';
-      $('fName').value = h.name || '';
-      $('fPhone').value = h.phone || '';
-      $('fTag').value = h.tag || '';
-      $('fNote').value = h.note || '';
-      $('mooHint').textContent = 'แก้ไขได้เต็มที่ แล้วกดบันทึก ระบบจะอัปเดตข้อมูลและ autosave ให้ทันที';
-    }else{
-      if(!pendingLatLng){ toast('กรุณาแตะตำแหน่งบนแผนที่ หรือใช้ปุ่ม GPS ก่อน'); return; }
-      $('formTitle').textContent = 'เพิ่มบ้านใหม่';
-      $('formLoc').textContent = `พิกัด ${pendingLatLng.lat.toFixed(5)}, ${pendingLatLng.lng.toFixed(5)}`;
-      const autoMoo = detectMoo(pendingLatLng.lat, pendingLatLng.lng);
-      buildMooOptions(autoMoo);
-      $('fNo').value = '';
-      $('fName').value = '';
-      $('fPhone').value = '';
-      $('fTag').value = '';
-      $('fNote').value = '';
-      $('mooHint').textContent = autoMoo ? `ระบบคาดว่าอยู่หมู่ ${autoMoo} ${MOO_META[autoMoo].name} — ถ้าคลาดเคลื่อนแก้เองได้เลย` : 'ตำแหน่งนี้อยู่นอกแนวเขตตั้งต้น กรุณาเลือกหมู่ด้วยตนเอง';
-      if(mapReady){
-        if(tempMarker) map.removeLayer(tempMarker);
-        tempMarker = L.marker(pendingLatLng, {icon:L.divIcon({className:'', iconSize:null, iconAnchor:[18,14], html:'<div class="plate-pin active">ใหม่</div>'})}).addTo(map);
-      }
-    }
-    $('formOverlay').classList.add('show');
-  }
-  function closeForm(){
-    $('formOverlay').classList.remove('show');
-    if(tempMarker && mapReady){ map.removeLayer(tempMarker); tempMarker = null; }
-    if(addMode){ toggleAddMode(false); }
-  }
-  function toggleAddMode(force){
-    addMode = typeof force === 'boolean' ? force : !addMode;
-    $('banner').style.display = addMode ? 'block' : (zoneEditMode ? 'block' : 'none');
-    if(addMode){
-      $('banner').textContent = 'แตะตำแหน่งบ้านบนแผนที่เพื่อเปิดฟอร์มเพิ่มข้อมูล';
-      $('btnAdd').textContent = '✖ ยกเลิกเพิ่มบ้าน';
-      $('btnAdd').classList.add('active-cancel');
-    }else{
-      $('btnAdd').textContent = '➕ เพิ่มบ้าน';
-      $('btnAdd').classList.remove('active-cancel');
-      if(!zoneEditMode) $('banner').style.display = 'none';
-    }
-  }
-
-  function saveForm(){
-    const no = $('fNo').value.trim();
-    const moo = parseInt($('fMoo').value, 10);
-    const name = $('fName').value.trim();
-    const phone = $('fPhone').value.trim();
-    const tag = $('fTag').value;
-    const note = $('fNote').value.trim();
-    if(!no || !name || !moo){ toast('กรอกบ้านเลขที่ หมู่ และชื่อเจ้าบ้านก่อนครับ'); return; }
-    const data = {no, moo, name, phone, tag, note};
-    const dupIndex = houses.findIndex(h => h.id !== editId && houseKey(h) === houseKey(data));
-    if(dupIndex > -1 && !confirm('พบบ้านเลขที่นี้ในหมู่เดียวกันอยู่แล้ว ต้องการบันทึกซ้ำจริงไหม?')) return;
-    if(editId){
-      const old = getHouseById(editId);
-      Object.assign(old, data, {updatedAt:new Date().toISOString()});
-      toast('แก้ไขข้อมูลเรียบร้อย ✓');
-    }else{
-      if(!pendingLatLng){ toast('ยังไม่มีพิกัดบ้าน'); return; }
-      houses.push({...data, id:uid(), lat:pendingLatLng.lat, lng:pendingLatLng.lng, updatedAt:new Date().toISOString()});
-      toast(`เพิ่มบ้านเลขที่ ${no} เรียบร้อย ✓`);
-    }
-    rebuildMarkers();
-    renderDashboard();
-    renderContextInfo();
-    renderList();
-    persist();
-    closeForm();
-  }
-
-  function deleteCurrent(){
-    if(!editId) return;
-    if(!confirm('ต้องการลบข้อมูลบ้านหลังนี้ใช่ไหม?')) return;
-    houses = houses.filter(h => h.id !== editId);
-    if(selectedId === editId) selectedId = null;
-    rebuildMarkers();
-    renderDashboard();
-    renderContextInfo();
-    renderList();
-    persist();
-    closeForm();
-    toast('ลบข้อมูลเรียบร้อย');
-  }
-
-  function importFile(file){
-    const reader = new FileReader();
-    reader.onload = () => {
-      try{
-        const data = JSON.parse(reader.result);
-        if(Array.isArray(data)) houses = data;
-        else {
-          houses = Array.isArray(data.houses) ? data.houses : houses;
-          zones = data.zones || zones;
-          logoData = data.logo || logoData;
-        }
-        houses = houses.map(h => ({id:h.id || uid(), updatedAt:h.updatedAt || new Date().toISOString(), note:h.note || '', ...h}));
-        $('brandLogo').src = logoData || DEFAULT_LOGO;
-        selectedId = null;
-        buildChips();
-        renderDashboard();
-        renderContextInfo();
-        renderList();
-        if(mapReady){ drawZones(); rebuildMarkers(); fitAll(); }
-        persist();
-        toast(`เปิดไฟล์สำเร็จ ${houses.length} หลังคาเรือน`);
-      }catch(err){ toast('ไฟล์ไม่ถูกต้อง'); console.error(err); }
-    };
-    reader.readAsText(file);
-  }
-
-  function mergeFiles(files){
-    if(!files.length) return;
-    let done = 0, added = 0, skipped = 0, bad = 0;
-    const keys = new Set(houses.map(h => houseKey(h)));
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        try{
-          const data = JSON.parse(reader.result);
-          const list = Array.isArray(data) ? data : (Array.isArray(data.houses) ? data.houses : []);
-          list.forEach(h => {
-            if(!h || !h.no || h.lat == null || h.lng == null) return;
-            const prepared = {id:h.id || uid(), note:h.note || '', updatedAt:h.updatedAt || new Date().toISOString(), ...h};
-            const key = houseKey(prepared);
-            if(keys.has(key)){ skipped++; return; }
-            keys.add(key);
-            houses.push(prepared);
-            added++;
-          });
-        }catch(err){ bad++; }
-        done++;
-        if(done === files.length){
-          rebuildMarkers();
-          renderDashboard();
-          renderContextInfo();
-          renderList();
-          persist();
-          toast(`รวมไฟล์เสร็จ ✓ เพิ่ม ${added} · ซ้ำ ${skipped}${bad ? ' · ไฟล์เสีย ' + bad : ''}`);
-        }
-      };
-      reader.readAsText(file);
-    });
-  }
+  function isFirebaseConfigured(){const c=window.BAAN_MAP_FIREBASE_CONFIG||{};return !!(c.apiKey&&c.projectId&&c.authDomain&&!String(c.apiKey).includes("PASTE"))}
+  async function initFirebase(){if(!isFirebaseConfigured()){setCloud("Firebase ยังไม่ตั้งค่า",true);return}try{const [appM,authM,fsM]=await Promise.all([import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"),import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js")]);const app=appM.initializeApp(window.BAAN_MAP_FIREBASE_CONFIG);const auth=authM.getAuth(app);const db=fsM.getFirestore(app);fb={enabled:true,ready:true,user:null,unsub:null,api:{authM,fsM,auth,db,path:(window.BAAN_MAP_COLLECTION_PATH||"municipalities/bangraknoi/houses").split("/")}};authM.onAuthStateChanged(auth,user=>{fb.user=user||null;if(user){setCloud("Firebase: "+user.email,false);$("btnAuth").textContent="👤 "+user.email;$("btnSignOut").classList.remove("hidden");subscribeCloud()}else{setCloud("Firebase พร้อม · ยังไม่ Login",true);$("btnAuth").textContent="🔐 เข้าสู่ระบบ";$("btnSignOut").classList.add("hidden");if(fb.unsub){fb.unsub();fb.unsub=null}}})}catch(e){setCloud("โหลด Firebase ไม่สำเร็จ",true);console.error(e)}}
+  function colRef(){return fb.api.fsM.collection(fb.api.db,...fb.api.path)}
+  function docRef(id){return fb.api.fsM.doc(fb.api.db,...fb.api.path,id)}
+  function stripForCloud(h){return {no:h.no||"",moo:Number(h.moo)||0,name:h.name||"",phone:h.phone||"",tag:h.tag||"",note:h.note||"",lat:Number(h.lat),lng:Number(h.lng),updatedAt:h.updatedAt||new Date().toISOString(),updatedBy:fb.user?.email||""}}
+  function subscribeCloud(){if(!fb.ready||!fb.user)return;if(fb.unsub)fb.unsub();fb.unsub=fb.api.fsM.onSnapshot(colRef(),snap=>{if(snap.empty){toast("Firebase ยังไม่มีข้อมูล กดซิงก์ขึ้น Firebase ได้เลย");return}houses=snap.docs.map(d=>({id:d.id,...d.data(),cloud:true}));rebuildMarkers();renderDashboard();renderContext();renderList();persist();setCloud("Firebase sync สด "+houses.length+" หลัง",false)},err=>{setCloud("อ่าน Firebase ไม่สำเร็จ",true);console.error(err)})}
+  async function cloudSave(h){if(!fb.ready||!fb.user)return;try{await fb.api.fsM.setDoc(docRef(h.id),stripForCloud(h),{merge:true});h.cloud=true;renderList();persist()}catch(e){toast("ซิงก์ Firebase ไม่สำเร็จ");console.error(e)}}
+  async function cloudDelete(id){if(!fb.ready||!fb.user)return;try{await fb.api.fsM.deleteDoc(docRef(id))}catch(e){toast("ลบจาก Firebase ไม่สำเร็จ");console.error(e)}}
+  async function cloudPushAll(){if(!fb.ready){toast("ยังไม่ได้ตั้งค่า Firebase");return}if(!fb.user){$("authOverlay").classList.add("show");toast("เข้าสู่ระบบก่อนซิงก์ขึ้น Firebase");return}if(!houses.length){toast("ยังไม่มีข้อมูลให้ซิงก์");return}if(!confirm("ซิงก์ข้อมูลในเครื่องทั้งหมดขึ้น Firebase ใช่ไหม?"))return;let ok=0;for(const h of houses){await cloudSave(h);ok++}toast("ซิงก์ขึ้น Firebase แล้ว "+ok+" รายการ")}
+  async function signIn(){if(!fb.ready){toast("กรุณาตั้งค่า firebase-config.js ก่อน");return}const email=$("authEmail").value.trim(),pass=$("authPassword").value;if(!email||!pass){toast("กรอก Email และ Password");return}try{await fb.api.authM.signInWithEmailAndPassword(fb.api.auth,email,pass);$("authOverlay").classList.remove("show");toast("เข้าสู่ระบบแล้ว")}catch(e){toast("เข้าสู่ระบบไม่สำเร็จ: "+e.code)}}
+  async function signUp(){if(!fb.ready){toast("กรุณาตั้งค่า firebase-config.js ก่อน");return}const email=$("authEmail").value.trim(),pass=$("authPassword").value;if(!email||pass.length<6){toast("กรอก Email และ Password อย่างน้อย 6 ตัว");return}try{await fb.api.authM.createUserWithEmailAndPassword(fb.api.auth,email,pass);$("authOverlay").classList.remove("show");toast("สร้างบัญชีแล้ว")}catch(e){toast("สร้างบัญชีไม่สำเร็จ: "+e.code)}}
+  async function signOut(){if(fb.ready)await fb.api.authM.signOut(fb.api.auth);toast("ออกจากระบบแล้ว")}
 
   function setupEvents(){
-    $('versionPill').textContent = `เวอร์ชัน ${APP_VERSION}`;
-    $('chips').addEventListener('click', e => {
-      const btn = e.target.closest('[data-m]');
-      if(btn) setMooFilter(btn.dataset.m);
-    });
-    $('dashboardGrid').addEventListener('click', e => {
-      const card = e.target.closest('[data-moo-card]');
-      if(card) setMooFilter(card.dataset.mooCard === mooFilter ? '' : card.dataset.mooCard);
-    });
-    $('list').addEventListener('click', e => {
-      const nav = e.target.closest('[data-nav]');
-      if(nav){ const h = getHouseById(nav.dataset.nav); if(h) window.open(navUrl(h), '_blank'); return; }
-      const edit = e.target.closest('[data-edit]');
-      if(edit){ openForm(edit.dataset.edit); return; }
-      const house = e.target.closest('.house');
-      if(house) selectHouse(house.dataset.id, true);
-    });
-    $('btnHelp').onclick = () => $('helpOverlay').classList.add('show');
-    $('btnHelpClose').onclick = () => $('helpOverlay').classList.remove('show');
-    $('helpOverlay').addEventListener('click', e => { if(e.target.id === 'helpOverlay') $('helpOverlay').classList.remove('show'); });
-    $('btnZone').onclick = toggleZoneEdit;
-    $('btnAdd').onclick = () => {
-      if(zoneEditMode){ toast('ออกจากโหมดแก้เขตก่อนนะครับ'); return; }
-      if(!mapReady){ toast('แผนที่ยังไม่พร้อม แต่ยังใช้นำเข้า/ส่งออกข้อมูลได้'); return; }
-      toggleAddMode();
-    };
-    $('btnGps').onclick = () => {
-      if(!navigator.geolocation){ toast('อุปกรณ์นี้ไม่รองรับ GPS'); return; }
-      toast('กำลังค้นหาตำแหน่ง…');
-      navigator.geolocation.getCurrentPosition(pos => {
-        pendingLatLng = {lat:pos.coords.latitude, lng:pos.coords.longitude};
-        safeMap(() => map.flyTo([pendingLatLng.lat, pendingLatLng.lng], 18));
-        openForm(null);
-      }, () => toast('ไม่สามารถดึงตำแหน่งได้ กรุณาเปิดสิทธิ์ Location'), {enableHighAccuracy:true, timeout:10000});
-    };
-    $('btnCancel').onclick = closeForm;
-    $('btnSave').onclick = saveForm;
-    $('btnDelete').onclick = deleteCurrent;
-    $('formOverlay').addEventListener('click', e => { if(e.target.id === 'formOverlay') closeForm(); });
-    $('q').addEventListener('input', renderList);
-    $('tagFilter').addEventListener('change', renderList);
-    $('sortBy').addEventListener('change', renderList);
-    $('noteFilter').addEventListener('input', renderList);
-    $('btnFit').onclick = () => { fitAll(); toast('รวมมุมมองแผนที่แล้ว'); };
-    $('btnExport').onclick = () => { persist(); download(`baan-map-backup-${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(getPayload(), null, 2), 'application/json'); toast('ดาวน์โหลด JSON แล้ว'); };
-    $('btnCsv').onclick = () => { download(`baan-map-export-${new Date().toISOString().slice(0,10)}.csv`, toCSV(), 'text/csv;charset=utf-8'); toast('ดาวน์โหลด CSV แล้ว'); };
-    $('btnImport').onclick = () => $('fileInput').click();
-    $('fileInput').onchange = e => { const file = e.target.files[0]; if(file) importFile(file); e.target.value=''; };
-    $('btnMerge').onclick = () => $('mergeInput').click();
-    $('mergeInput').onchange = e => { mergeFiles([...e.target.files]); e.target.value=''; };
-    $('btnClear').onclick = () => {
-      if(!confirm('ต้องการล้างข้อมูลทั้งหมดในเครื่องนี้ใช่ไหม? ควรสำรองไฟล์ก่อน')) return;
-      houses = [];
-      selectedId = null;
-      localStorage.removeItem(STORAGE_KEY);
-      rebuildMarkers();
-      renderDashboard();
-      renderContextInfo();
-      renderList();
-      setSyncState('ล้างข้อมูลในเครื่องแล้ว', true);
-      setLastSaved('ยังไม่ได้บันทึกล่าสุด');
-      toast('ล้างข้อมูลเรียบร้อย');
-    };
-    $('brandLogoButton').onclick = () => $('logoInput').click();
-    $('logoInput').onchange = e => {
-      const file = e.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = () => { logoData = reader.result; $('brandLogo').src = logoData; persist(); toast('เปลี่ยนโลโก้แล้ว ✓'); };
-      reader.readAsDataURL(file);
-      e.target.value='';
-    };
-    document.addEventListener('keydown', e => {
-      if(e.key === 'Escape'){
-        $('helpOverlay').classList.remove('show');
-        if($('formOverlay').classList.contains('show')) closeForm();
-      }
-    });
+    $("chips").onclick=e=>{const b=e.target.closest("[data-m]");if(b)setMooFilter(b.dataset.m)}
+    $("dashboard").onclick=e=>{const c=e.target.closest("[data-moo]");if(c)setMooFilter(c.dataset.moo===mooFilter?"":c.dataset.moo)}
+    $("list").onclick=e=>{const n=e.target.closest("[data-nav]");if(n){const h=getHouse(n.dataset.nav);if(h)window.open(navUrl(h),"_blank");return}const ed=e.target.closest("[data-edit]");if(ed){openForm(ed.dataset.edit);return}const h=e.target.closest(".house");if(h)selectHouse(h.dataset.id,true)}
+    $("btnHelp").onclick=()=>$("helpOverlay").classList.add("show");$("btnHelpClose").onclick=()=>$("helpOverlay").classList.remove("show");$("helpOverlay").onclick=e=>{if(e.target.id==="helpOverlay")$("helpOverlay").classList.remove("show")}
+    $("btnAuth").onclick=()=>$("authOverlay").classList.add("show");$("btnAuthClose").onclick=()=>$("authOverlay").classList.remove("show");$("authOverlay").onclick=e=>{if(e.target.id==="authOverlay")$("authOverlay").classList.remove("show")}
+    $("btnSignIn").onclick=signIn;$("btnSignUp").onclick=signUp;$("btnSignOut").onclick=signOut
+    $("btnZone").onclick=toggleZone;$("btnFit").onclick=()=>{fitBangRakNoi();toast("กลับมาที่ตำบลบางรักน้อยแล้ว")}
+    $("btnAdd").onclick=()=>{if(zoneEdit){toast("ออกจากโหมดแก้เขตก่อน");return}if(!mapReady){toast("แผนที่ยังไม่พร้อม");return}toggleAdd()}
+    $("btnGps").onclick=()=>{if(!navigator.geolocation){toast("อุปกรณ์นี้ไม่รองรับ GPS");return}toast("กำลังหาตำแหน่ง…");navigator.geolocation.getCurrentPosition(pos=>{pendingLatLng={lat:pos.coords.latitude,lng:pos.coords.longitude};safeMap(()=>map.flyTo([pendingLatLng.lat,pendingLatLng.lng],18));openForm(null)},()=>toast("ขอตำแหน่งไม่สำเร็จ กรุณาเปิดสิทธิ์ Location"),{enableHighAccuracy:true,timeout:10000})}
+    $("btnCancel").onclick=closeForm;$("btnSave").onclick=saveForm;$("btnDelete").onclick=deleteCurrent;$("formOverlay").onclick=e=>{if(e.target.id==="formOverlay")closeForm()}
+    ["q","noteFilter"].forEach(id=>$(id).addEventListener("input",renderList));["tagFilter","sortBy"].forEach(id=>$(id).addEventListener("change",renderList))
+    $("btnExport").onclick=()=>{persist();download("baan-map-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(payload(),null,2),"application/json");toast("ดาวน์โหลด JSON แล้ว")}
+    $("btnCsv").onclick=()=>{download("baan-map-export-"+new Date().toISOString().slice(0,10)+".csv",toCSV(),"text/csv;charset=utf-8");toast("ดาวน์โหลด CSV แล้ว")}
+    $("btnImport").onclick=()=>$("fileInput").click();$("fileInput").onchange=e=>{const f=e.target.files[0];if(f)importFile(f);e.target.value=""}
+    $("btnMerge").onclick=()=>$("mergeInput").click();$("mergeInput").onchange=e=>{mergeFiles([...e.target.files]);e.target.value=""}
+    $("btnCloudPush").onclick=cloudPushAll
+    $("btnClear").onclick=()=>{if(!confirm("ล้างข้อมูลในเครื่องนี้ใช่ไหม? ควรสำรองก่อน"))return;houses=[];selectedId=null;localStorage.removeItem(STORAGE_KEY);rebuildMarkers();renderDashboard();renderContext();renderList();setSync("ล้างข้อมูล Local แล้ว",true);toast("ล้างข้อมูลแล้ว")}
+    $("logoButton").onclick=()=>$("logoInput").click();$("logoInput").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{logoData=r.result;$("brandLogo").src=logoData;persist();toast("เปลี่ยนโลโก้แล้ว")};r.readAsDataURL(f);e.target.value=""}
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("helpOverlay").classList.remove("show");$("authOverlay").classList.remove("show");if($("formOverlay").classList.contains("show"))closeForm()}})
+    window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("btnInstall").classList.remove("hidden")});$("btnInstall").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("btnInstall").classList.add("hidden")}
   }
-
-  function registerPWA(){
-    if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
-      navigator.serviceWorker.register('./sw.js').catch(console.error);
-    }
-    window.addEventListener('beforeinstallprompt', e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      $('btnInstall').classList.remove('hidden');
-    });
-    $('btnInstall').onclick = async () => {
-      if(!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      $('btnInstall').classList.add('hidden');
-    };
-  }
-
-  loadLocal();
-  $('brandLogo').src = logoData || DEFAULT_LOGO;
-  buildChips();
-  renderDashboard();
-  renderContextInfo();
-  renderList();
-  setupEvents();
-  initMap();
-  registerPWA();
-  persist(true);
+  function registerSW(){if("serviceWorker"in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))navigator.serviceWorker.register("./sw.js").catch(console.error)}
+  loadLocal();buildChips();renderDashboard();renderContext();renderList();setupEvents();initMap();initFirebase();registerSW();persist();
 })();
 </script>
 </body>
