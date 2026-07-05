@@ -1,0 +1,17 @@
+{
+  "name": "Baan-Map | ฝ่ายปกครอง",
+  "short_name": "Baan-Map",
+  "description": "เว็บแอปสำหรับฝ่ายปกครอง ใช้บันทึกข้อมูลบ้านลูกบ้าน แผนที่ภาคสนาม และสรุปข้อมูลแบบใช้งานจริง",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#312E81",
+  "icons": [
+    {
+      "src": "./assets/logo-baan-map.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
