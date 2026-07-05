@@ -1,17 +1,10 @@
-/*
-  Baan-Map Firebase Config
-  1) ไป Firebase Console > Project settings > General > Your apps > Web app
-  2) คัดลอก firebaseConfig มาแทนค่าด้านล่าง
-  3) ถ้ายังไม่กรอก ระบบจะทำงานแบบ Offline/Local ก่อน
-*/
-window.BAAN_MAP_FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAeI5glgVOvE1Eu68Xe-ZARv8bVISFenyI",
+  authDomain: "baan-map.firebaseapp.com",
+  projectId: "baan-map",
+  storageBucket: "baan-map.firebasestorage.app",
+  messagingSenderId: "1055732206987",
+  appId: "1:1055732206987:web:996deea05d4d02d797738e",
+  measurementId: "G-QNXYQ9L503"
 };
-
-// path เก็บข้อมูลใน Firestore
-window.BAAN_MAP_COLLECTION_PATH = "municipalities/bangraknoi/houses";
