@@ -13,3 +13,11 @@ service cloud.firestore {
     }
   }
 }
+
+// ── (แนะนำขั้นถัดไป) กฎแบบเข้มขึ้น: อนุญาตเฉพาะอีเมลเจ้าหน้าที่ ──
+// แทนบรรทัด allow ด้านบนด้วยแบบนี้ แล้วใส่อีเมลจริงของทีม:
+//   allow read, create, update, delete: if request.auth != null
+//     && request.auth.token.email in [
+//       'phuyaiban@example.com',
+//       'assist1@example.com'
+//     ];

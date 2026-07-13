@@ -1,4 +1,4 @@
-const CACHE_NAME = "baan-map-v2-shell";
+const CACHE_NAME = "baan-map-v3-shell";
 const APP_SHELL = [
   "./",
   "./index.html",
